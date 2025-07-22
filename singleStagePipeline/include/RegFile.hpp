@@ -8,7 +8,7 @@ class RegFile {
 public:
   RegFile() = default;
   RegFile(const RegFile &other);
-  void Modify(const int ind, const int x);
-  int32_t GetData(const int ind);
+  void Modify(const int32_t ind, const int32_t x);
+  int32_t GetData(const int32_t ind) const;
 };
 #endif
