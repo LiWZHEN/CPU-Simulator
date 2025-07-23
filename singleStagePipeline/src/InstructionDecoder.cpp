@@ -56,7 +56,7 @@ std::string InstructionDecoder::Decode_R(const int32_t code) {
   case 0b011:
     return "sltu " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
   default:
-    break;
+    throw "Invalid function!";
   }
 }
 
