@@ -5,10 +5,11 @@
 #include <cstdint>
 #include <string>
 class Memory {
-  std::unordered_map<int32_t, int8_t> memories;
+  std::unordered_map<int32_t, uint8_t> memories;
 public:
   Memory() = default;
-  void Add(const int32_t address, const int8_t data);
-  int8_t Get(const int32_t address) const;
+  void Add(const int32_t address, const uint8_t data);
+  uint8_t Get(const int32_t address) const;
+  bool IsEmpty(const int32_t address) const;
 };
 #endif
