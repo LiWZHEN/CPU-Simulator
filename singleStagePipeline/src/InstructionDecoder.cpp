@@ -1,21 +1,32 @@
 #include "../include/InstructionDecoder.hpp"
+#include <iostream>
 
-std::string IntToString(int32_t x, int8_t len) {
+std::string IntToString(uint32_t x) {
   std::string ans;
-  for (int l = len - 1; l >= 0; --l) {
-    if (x & (1 << l)) {
-      ans += "1";
+  for (int i = 28; i >= 0; i -= 4) {
+    uint32_t mask = 0b1111 << i;
+    uint8_t byte = (x & mask) >> i;
+    if (byte < 10) {
+      ans.append(1, (byte + '0'));
     } else {
-      ans += "0";
+      ans.append(1, (byte - 10 + 'A'));
     }
   }
   return ans;
 }
 
-int32_t StringToInt(const std::string &str) {
-  int32_t ans = 0;
+uint32_t StringToInt(const std::string &str) {
+  uint32_t ans = 0;
   for (int i = 0; i < str.length(); ++i) {
-    ans = str[i] == '1' ? (ans << 1 | 1) : (ans << 1);
+    uint32_t half_byte;
+    if (str[i] >= '0' && str[i] <= '9') {
+      half_byte = str[i] - '0';
+    } else if (str[i] >= 'A' && str[i] <= 'F') {
+      half_byte = str[i] - 'A' + 10;
+    } else {
+      throw "Invalid string of hex number!";
+    }
+    ans = (ans << 4) | half_byte;
   }
   return ans;
 }
@@ -29,32 +40,32 @@ std::string InstructionDecoder::Decode_R(const int32_t code) {
   switch (funct3) {
   case 0b000:
     if (funct7 == 0b0000000) {
-      return "add " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+      return "add " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
     } else if (funct7 == 0b0100000) {
-      return "sub " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+      return "sub " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
     } else {
       throw "Invalid function!";
     }
   case 0b111:
-    return "and " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+    return "and " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
   case 0b110:
-    return "or " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+    return "or " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
   case 0b100:
-    return "xor " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+    return "xor " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
   case 0b001:
-    return "sll " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+    return "sll " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
   case 0b101:
     if (funct7 == 0b0000000) {
-      return "srl " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+      return "srl " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
     } else if (funct7 == 0b0100000) {
-      return "sra " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+      return "sra " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
     } else {
       throw "Invalid function!";
     }
   case 0b010:
-    return "slt " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+    return "slt " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
   case 0b011:
-    return "sltu " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(rs2, 5);
+    return "sltu " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
   default:
     throw "Invalid function!";
   }
@@ -67,14 +78,14 @@ std::string InstructionDecoder::Decode_IA(const int32_t code) {
   if (funct3 == 0b001) {
     const int32_t imm = (code >> 20) & 0b11111,
         funct7 = (code >> 25) & 0b1111111;
-    return "slli " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 5);
+    return "slli " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
   } else if (funct3 == 0b101) {
     const int32_t imm = (code >> 20) & 0b11111,
         funct7 = (code >> 25) & 0b1111111;
     if (funct7 == 0b0000000) {
-      return "srli " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 5);
+      return "srli " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     } else if (funct7 == 0b0100000) {
-      return "srai " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 5);
+      return "srai " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     } else {
       throw "Invalid function!";
     }
@@ -82,17 +93,17 @@ std::string InstructionDecoder::Decode_IA(const int32_t code) {
     const int32_t imm = (((code >> 20) & 0b111111111111) << 20) >> 20;
     switch (funct3) {
     case 0b000:
-      return "addi " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 12);
+      return "addi " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     case 0b111:
-      return "andi " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 12);
+      return "andi " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     case 0b110:
-      return "ori " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 12);
+      return "ori " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     case 0b100:
-      return "xori " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 12);
+      return "xori " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     case 0b010:
-      return "slti " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 12);
+      return "slti " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     case 0b011:
-      return "sltiu " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 12);
+      return "sltiu " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     default:
       throw "Invalid Function!";
     }
@@ -106,15 +117,15 @@ std::string InstructionDecoder::Decode_IM(const int32_t code) {
       imm = (((code >> 20) & 0b111111111111) << 20) >> 20;
   switch (funct3) {
   case 0b000:
-    return "lb " + IntToString(rd, 5) + " " + IntToString(imm, 12) + "(" + IntToString(rs1, 5) + ")";
+    return "lb " + IntToString(rd) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   case 0b100:
-    return "lbu " + IntToString(rd, 5) + " " + IntToString(imm, 12) + "(" + IntToString(rs1, 5) + ")";
+    return "lbu " + IntToString(rd) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   case 0b001:
-    return "lh " + IntToString(rd, 5) + " " + IntToString(imm, 12) + "(" + IntToString(rs1, 5) + ")";
+    return "lh " + IntToString(rd) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   case 0b101:
-    return "lhu " + IntToString(rd, 5) + " " + IntToString(imm, 12) + "(" + IntToString(rs1, 5) + ")";
+    return "lhu " + IntToString(rd) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   case 0b010:
-    return "lw " + IntToString(rd, 5) + " " + IntToString(imm, 12) + "(" + IntToString(rs1, 5) + ")";
+    return "lw " + IntToString(rd) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   default:
     throw "Invalid function!";
   }
@@ -128,7 +139,7 @@ std::string InstructionDecoder::Decode_IC(const int32_t code) {
   if (funct3 != 0b000) {
     throw "Invalid function!";
   }
-  return "jalr " + IntToString(rd, 5) + " " + IntToString(rs1, 5) + " " + IntToString(imm, 12);
+  return "jalr " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
 }
 
 std::string InstructionDecoder::Decode_IO(const int32_t code) {
@@ -155,11 +166,11 @@ std::string InstructionDecoder::Decode_S(const int32_t code) {
       imm = (((((code >> 25) & 0b1111111) << 5) | ((code >> 7) & 0b11111)) << 20) >> 20;
   switch (funct3) {
   case 0b000:
-    return "sb " + IntToString(rs2, 5) + " " + IntToString(imm, 12) + "(" + IntToString(rs1, 5) + ")";
+    return "sb " + IntToString(rs2) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   case 0b001:
-    return "sh " + IntToString(rs2, 5) + " " + IntToString(imm, 12) + "(" + IntToString(rs1, 5) + ")";
+    return "sh " + IntToString(rs2) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   case 0b010:
-    return "sw " + IntToString(rs2, 5) + " " + IntToString(imm, 12) + "(" + IntToString(rs1, 5) + ")";
+    return "sw " + IntToString(rs2) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   default:
     throw "Invalid function!";
   }
@@ -172,17 +183,17 @@ std::string InstructionDecoder::Decode_B(const int32_t code) {
       imm = (((((code >> 31) & 0b1) << 12) | (((code >> 7) & 0b1) << 11) | (((code >> 25) & 0b111111) << 5) | (((code >> 8) & 0b1111) << 1)) << 19) >> 19;
   switch (funct3) {
   case 0b000:
-    return "beq " + IntToString(rs1, 5) + " " + IntToString(rs2, 5) + " " + IntToString(imm, 13);
+    return "beq " + IntToString(rs1) + " " + IntToString(rs2) + " " + IntToString(imm);
   case 0b101:
-    return "bge " + IntToString(rs1, 5) + " " + IntToString(rs2, 5) + " " + IntToString(imm, 13);
+    return "bge " + IntToString(rs1) + " " + IntToString(rs2) + " " + IntToString(imm);
   case 0b111:
-    return "bgeu " + IntToString(rs1, 5) + " " + IntToString(rs2, 5) + " " + IntToString(imm, 13);
+    return "bgeu " + IntToString(rs1) + " " + IntToString(rs2) + " " + IntToString(imm);
   case 0b100:
-    return "blt " + IntToString(rs1, 5) + " " + IntToString(rs2, 5) + " " + IntToString(imm, 13);
+    return "blt " + IntToString(rs1) + " " + IntToString(rs2) + " " + IntToString(imm);
   case 0b110:
-    return "bltu " + IntToString(rs1, 5) + " " + IntToString(rs2, 5) + " " + IntToString(imm, 13);
+    return "bltu " + IntToString(rs1) + " " + IntToString(rs2) + " " + IntToString(imm);
   case 0b001:
-    return "bne " + IntToString(rs1, 5) + " " + IntToString(rs2, 5) + " " + IntToString(imm, 13);
+    return "bne " + IntToString(rs1) + " " + IntToString(rs2) + " " + IntToString(imm);
   default:
     throw "Invalid function!";
   }
@@ -191,19 +202,19 @@ std::string InstructionDecoder::Decode_B(const int32_t code) {
 std::string InstructionDecoder::Decode_J(const int32_t code) {
   const int32_t rd = (code >> 7) & 0b11111,
       imm = (((((code >> 31) & 0b1) << 20) | (((code >> 12) & 0b11111111) << 12) | (((code >> 20) & 0b1) << 11) | (((code >> 21) & 0b1111111111) << 1)) << 11) >> 11;
-  return "jal " + IntToString(rd, 5) + " " + IntToString(imm, 21);
+  return "jal " + IntToString(rd) + " " + IntToString(imm);
 }
 
 std::string InstructionDecoder::Decode_AUIPC(const int32_t code) {
   const int32_t rd = (code >> 7) & 0b11111,
       imm = code & 0b11111111111111111111000000000000;
-  return "auipc " + IntToString(rd, 5) + " " + IntToString(imm, 32);
+  return "auipc " + IntToString(rd) + " " + IntToString(imm);
 }
 
 std::string InstructionDecoder::Decode_LUI(const int32_t code) {
   const int32_t rd = (code >> 7) & 0b11111,
       imm = code & 0b11111111111111111111000000000000;
-  return "lui " + IntToString(rd, 5) + " " + IntToString(imm, 32);
+  return "lui " + IntToString(rd) + " " + IntToString(imm);
 }
 
 std::string InstructionDecoder::Decode(const int32_t code) {

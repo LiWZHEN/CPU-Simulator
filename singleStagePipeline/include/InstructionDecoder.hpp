@@ -22,7 +22,7 @@ public:
 };
 
 
-std::string IntToString(int32_t x, int8_t len);
-int32_t StringToInt(const std::string &str);
+std::string IntToString(uint32_t x);
+uint32_t StringToInt(const std::string &str);
 
 #endif
