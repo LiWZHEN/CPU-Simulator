@@ -9,7 +9,7 @@ class Memory {
 public:
   Memory() = default;
   void Add(const int32_t address, const uint8_t data);
-  uint8_t Get(const int32_t address);
+  int32_t Get(const int32_t address);
   bool IsEmpty(const int32_t address) const;
 };
 #endif
