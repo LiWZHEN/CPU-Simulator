@@ -1,4 +1,5 @@
 #include "../include/InstructionDecoder.hpp"
+#include "Exception.hpp"
 #include <iostream>
 
 std::string IntToString(uint32_t x) {
@@ -24,7 +25,7 @@ uint32_t StringToInt(const std::string &str) {
     } else if (str[i] >= 'A' && str[i] <= 'F') {
       half_byte = str[i] - 'A' + 10;
     } else {
-      throw "Invalid string of hex number!";
+      throw InvalidHexString();
     }
     ans = (ans << 4) | half_byte;
   }
@@ -44,7 +45,7 @@ std::string InstructionDecoder::Decode_R(const int32_t code) {
     } else if (funct7 == 0b0100000) {
       return "sub " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
     } else {
-      throw "Invalid function!";
+      throw InvalidFunction();
     }
   case 0b111:
     return "and " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
@@ -60,14 +61,14 @@ std::string InstructionDecoder::Decode_R(const int32_t code) {
     } else if (funct7 == 0b0100000) {
       return "sra " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
     } else {
-      throw "Invalid function!";
+      throw InvalidFunction();
     }
   case 0b010:
     return "slt " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
   case 0b011:
     return "sltu " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(rs2);
   default:
-    throw "Invalid function!";
+    throw InvalidFunction();
   }
 }
 
@@ -87,7 +88,7 @@ std::string InstructionDecoder::Decode_IA(const int32_t code) {
     } else if (funct7 == 0b0100000) {
       return "srai " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     } else {
-      throw "Invalid function!";
+      throw InvalidFunction();
     }
   } else {
     const int32_t imm = (((code >> 20) & 0b111111111111) << 20) >> 20;
@@ -105,7 +106,7 @@ std::string InstructionDecoder::Decode_IA(const int32_t code) {
     case 0b011:
       return "sltiu " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
     default:
-      throw "Invalid Function!";
+      throw InvalidFunction();
     }
   }
 }
@@ -127,7 +128,7 @@ std::string InstructionDecoder::Decode_IM(const int32_t code) {
   case 0b010:
     return "lw " + IntToString(rd) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   default:
-    throw "Invalid function!";
+    throw InvalidFunction();
   }
 }
 
@@ -137,7 +138,7 @@ std::string InstructionDecoder::Decode_IC(const int32_t code) {
       rs1 = (code >> 15) & 0b11111,
       imm = (((code >> 20) & 0b111111111111) << 20) >> 20;
   if (funct3 != 0b000) {
-    throw "Invalid function!";
+    throw InvalidFunction();
   }
   return "jalr " + IntToString(rd) + " " + IntToString(rs1) + " " + IntToString(imm);
 }
@@ -148,7 +149,7 @@ std::string InstructionDecoder::Decode_IO(const int32_t code) {
       rs1 = (code >> 15) & 0b11111,
       imm = (((code >> 20) & 0b111111111111) << 20) >> 20; 
   if (funct3 != 0b000) {
-    throw "Invalid function!";
+    throw InvalidFunction();
   }
   if (imm == 0) {
     return "ebreak";
@@ -156,7 +157,7 @@ std::string InstructionDecoder::Decode_IO(const int32_t code) {
   if (imm == 1) {
     return "ecall";
   }
-  throw "Invalid function!";
+  throw InvalidFunction();
 }
 
 std::string InstructionDecoder::Decode_S(const int32_t code) {
@@ -172,7 +173,7 @@ std::string InstructionDecoder::Decode_S(const int32_t code) {
   case 0b010:
     return "sw " + IntToString(rs2) + " " + IntToString(imm) + "(" + IntToString(rs1) + ")";
   default:
-    throw "Invalid function!";
+    throw InvalidFunction();
   }
 }
 
@@ -195,7 +196,7 @@ std::string InstructionDecoder::Decode_B(const int32_t code) {
   case 0b001:
     return "bne " + IntToString(rs1) + " " + IntToString(rs2) + " " + IntToString(imm);
   default:
-    throw "Invalid function!";
+    throw InvalidFunction();
   }
 }
 
@@ -241,6 +242,6 @@ std::string InstructionDecoder::Decode(const int32_t code) {
   case 0b1110011:
     return Decode_IO(code);
   default:
-    throw "No type matches!";
+    throw NoMatchedType();
   }
 }
