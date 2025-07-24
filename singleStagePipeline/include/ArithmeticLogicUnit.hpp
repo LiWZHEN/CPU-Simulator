@@ -14,5 +14,7 @@ public:
   int32_t Sll(const int32_t n1, const int32_t n2);
   int32_t Srl(const int32_t n1, const int32_t n2);
   int32_t Sra(const int32_t n1, const int32_t n2);
+  int32_t Slt(const int32_t n1, const int32_t n2);
+  int32_t Sltu(const uint32_t n1, const uint32_t n2);
 };
 #endif

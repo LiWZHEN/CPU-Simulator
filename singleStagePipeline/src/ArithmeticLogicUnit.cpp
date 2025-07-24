@@ -41,3 +41,11 @@ int32_t ArithmeticLogicUnit::Srl(const int32_t n1, const int32_t n2) {
 int32_t ArithmeticLogicUnit::Sra(const int32_t n1, const int32_t n2) {
   return n1 >> n2;
 }
+
+int32_t ArithmeticLogicUnit::Slt(const int32_t n1, const int32_t n2) {
+  return (n1 < n2) ? 1 : 0;
+}
+
+int32_t ArithmeticLogicUnit::Sltu(const uint32_t n1, const uint32_t n2) {
+  return (n1 < n2) ? 1 : 0;
+}
