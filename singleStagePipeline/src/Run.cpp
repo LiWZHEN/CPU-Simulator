@@ -124,7 +124,7 @@ void Interpreter::Sltiu(const int32_t rd, const int32_t rs1, const int32_t imm) 
   reg_file.Modify(rd, result);
 }
 
-void Interpreter::Lb(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory) {
+void Interpreter::Lb(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory) {
   const int32_t data_r = reg_file.GetData(rs1);
   const int32_t address = ALU.Add(data_r, imm);
   int32_t data_m = memory.Get(address);
@@ -132,14 +132,14 @@ void Interpreter::Lb(const int32_t rd, const int32_t imm, const int32_t rs1, con
   reg_file.Modify(rd, data_m);
 }
 
-void Interpreter::Lbu(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory) {
+void Interpreter::Lbu(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory) {
   const int32_t data_r = reg_file.GetData(rs1);
   const int32_t address = ALU.Add(data_r, imm);
   const int32_t data_m = memory.Get(address);
   reg_file.Modify(rd, data_m);
 }
 
-void Interpreter::Lh(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory) {
+void Interpreter::Lh(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory) {
   const int32_t data_r = reg_file.GetData(rs1);
   const int32_t address = ALU.Add(data_r, imm);
   int32_t data_m = (memory.Get(address) | (memory.Get(address + 1) << 8));
@@ -147,14 +147,14 @@ void Interpreter::Lh(const int32_t rd, const int32_t imm, const int32_t rs1, con
   reg_file.Modify(rd, data_m);
 }
 
-void Interpreter::Lhu(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory) {
+void Interpreter::Lhu(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory) {
   const int32_t data_r = reg_file.GetData(rs1);
   const int32_t address = ALU.Add(data_r, imm);
   const int32_t data_m = (memory.Get(address) | (memory.Get(address + 1) << 8));
   reg_file.Modify(rd, data_m);
 }
 
-void Interpreter::Lw(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory) {
+void Interpreter::Lw(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory) {
   const int32_t data_r = reg_file.GetData(rs1);
   const int32_t address = ALU.Add(data_r, imm);
   const int32_t data_m = (memory.Get(address) | (memory.Get(address + 1) << 8) | (memory.Get(address + 2) << 16) | (memory.Get(address + 3) << 24));

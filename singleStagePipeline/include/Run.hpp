@@ -39,11 +39,11 @@ private:
   void Xori(const int32_t rd, const int32_t rs1, const int32_t imm);
   void Slti(const int32_t rd, const int32_t rs1, const int32_t imm);
   void Sltiu(const int32_t rd, const int32_t rs1, const int32_t imm);
-  void Lb(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory);
-  void Lbu(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory);
-  void Lh(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory);
-  void Lhu(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory);
-  void Lw(const int32_t rd, const int32_t imm, const int32_t rs1, const Memory &memory);
+  void Lb(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory);
+  void Lbu(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory);
+  void Lh(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory);
+  void Lhu(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory);
+  void Lw(const int32_t rd, const int32_t imm, const int32_t rs1, Memory &memory);
   void Jalr(const int32_t rd, const int32_t rs1, const int32_t imm);
   void Ebreak();
   void Ecall();
