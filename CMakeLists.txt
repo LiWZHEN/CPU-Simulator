@@ -8,4 +8,9 @@ include_directories(singleStagePipeline)
 add_executable(singleStagePipeline singleStagePipeline/main.cpp
         singleStagePipeline/src/Memory.cpp
         singleStagePipeline/src/ProgramCounter.cpp
-        singleStagePipeline/src/InstructionDecoder.cpp)
+        singleStagePipeline/src/InstructionDecoder.cpp
+        singleStagePipeline/src/ArithmeticLogicUnit.cpp
+        singleStagePipeline/src/BranchComparation.cpp
+        singleStagePipeline/src/LoadData.cpp
+        singleStagePipeline/src/RegFile.cpp
+        singleStagePipeline/src/Run.cpp)
