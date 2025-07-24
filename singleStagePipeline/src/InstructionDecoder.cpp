@@ -1,5 +1,5 @@
 #include "../include/InstructionDecoder.hpp"
-#include "Exception.hpp"
+#include "../include/Exception.hpp"
 #include <iostream>
 
 std::string IntToString(uint32_t x) {
