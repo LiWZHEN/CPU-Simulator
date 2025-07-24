@@ -1,8 +1,5 @@
-#include <iostream>
-#include "include/Exception.hpp"
 #include "include/LoadData.hpp"
 #include "include/Run.hpp"
-
 
 int main() {
   Memory memory;
