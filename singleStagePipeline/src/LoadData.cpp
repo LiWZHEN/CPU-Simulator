@@ -17,7 +17,7 @@ void DataLoader::LoadData(Memory &memory) {
         }
       }
     } else {
-      uint8_t single_byte = 0b0;
+      int32_t single_byte = 0b0;
       if (command[0] >= '0' && command[0] <= '9') {
         single_byte |= ((command[0] - '0') << 4);
       } else if (command[0] >= 'A' && command[0] <= 'F') {
