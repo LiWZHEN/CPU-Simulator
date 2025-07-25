@@ -276,7 +276,8 @@ void Interpreter::Run(Memory &memory) {
     }
     int32_t instruction = (memory.Get(current_pc) | (memory.Get(current_pc + 1) << 8) | (memory.Get(current_pc + 2) << 16) | (memory.Get(current_pc + 3) << 24));
     if (instruction == 0x0ff00513) {
-      std::cout << reg_file.GetData(10) << '\n';
+      int32_t return_value = reg_file.GetData(10);
+      std::cout << (return_value & 0x000000FF) << '\n';
       return;
     }
     std::string command = decoder.Decode(instruction);
