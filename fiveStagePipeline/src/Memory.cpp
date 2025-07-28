@@ -1,16 +1,21 @@
 #include "../include/Memory.hpp"
 
 void Memory::Add(const int32_t address, const uint8_t data) {
-  memories[address] = data;
+  new_memories[address] = data;
+  modify_record.push(ModifyRecordUnit(address, data));
 }
 
-int32_t Memory::Get(const int32_t address) {
-  if (this->IsEmpty(address)) {
-    memories[address] = 0x00;
+int32_t Memory::Get(const int32_t address) const {
+  if (old_memories.count(address) == 0) {
+    return 0;
   }
-  return memories.at(address);
+  return old_memories.at(address);
 }
 
-bool Memory::IsEmpty(const int32_t address) const {
-  return memories.count(address) == 0;
+void Memory::Update() {
+  while (!modify_record.empty()) {
+    auto top_record = modify_record.front();
+    modify_record.pop();
+    old_memories[top_record.index] = top_record.value;
+  }
 }
