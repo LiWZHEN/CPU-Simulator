@@ -5,6 +5,7 @@
 #include <queue>
 #include <cstdint>
 #include <string>
+#include "RegisterFile.hpp"
 
 class Memory {
   struct ModifyRecordUnit {
@@ -19,8 +20,10 @@ class Memory {
   std::unordered_map<int32_t, uint8_t> old_memories;
   std::unordered_map<int32_t, uint8_t> new_memories;
   std::queue<ModifyRecordUnit> modify_record;
+  RegisterFile *register_file = nullptr;
 public:
   Memory() = default;
+  void Connect(RegisterFile *register_file);
   void Add(const int32_t address, const uint8_t data);
   int32_t Get(const int32_t address) const;
   void Update();

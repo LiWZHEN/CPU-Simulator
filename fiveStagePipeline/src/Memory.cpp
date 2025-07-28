@@ -1,5 +1,9 @@
 #include "../include/Memory.hpp"
 
+void Memory::Connect(RegisterFile *register_file) {
+  this->register_file = register_file;
+}
+
 void Memory::Add(const int32_t address, const uint8_t data) {
   new_memories[address] = data;
   modify_record.push(ModifyRecordUnit(address, data));
