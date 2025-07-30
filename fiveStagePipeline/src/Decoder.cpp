@@ -501,9 +501,9 @@ void Decoder::Decode_B() {
     if (predict_jump) {
       pc->SetPCTask(current_pc + imm);
       task.discard_this = true;
-      rob->SetFromDecoder(type, current_pc + 4, 1, false);
+      rob->SetFromDecoder(type, current_pc + 4, current_pc << 1 | 1, false);
     } else {
-      rob->SetFromDecoder(type, current_pc + imm, 0, false);
+      rob->SetFromDecoder(type, current_pc + imm, current_pc << 1, false);
     }
     rf->SetNewDepenence(0, -1);
     rs->SetFromDecoder(type, V1, V2, Q1, Q2, rob_tail);
