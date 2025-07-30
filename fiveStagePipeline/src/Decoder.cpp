@@ -445,33 +445,51 @@ void Decoder::Decode_B() {
       if (V1 == V2) {
         pc->SetPCTask(current_pc + imm);
         task.discard_this = true;
+        predictor->SubmitResult(current_pc, true);
+      } else {
+        predictor->SubmitResult(current_pc, false);
       }
     } else if (type == BGE) {
       if (V1 >= V2) {
         pc->SetPCTask(current_pc + imm);
         task.discard_this = true;
+        predictor->SubmitResult(current_pc, true);
+      } else {
+        predictor->SubmitResult(current_pc, false);
       }
     } else if (type == BGEU) {
       uint32_t UV1 = V1, UV2 = V2;
       if (UV1 >= UV2) {
         pc->SetPCTask(current_pc + imm);
         task.discard_this = true;
+        predictor->SubmitResult(current_pc, true);
+      } else {
+        predictor->SubmitResult(current_pc, false);
       }
     } else if (type == BLT) {
       if (V1 < V2) {
         pc->SetPCTask(current_pc + imm);
         task.discard_this = true;
+        predictor->SubmitResult(current_pc, true);
+      } else {
+        predictor->SubmitResult(current_pc, false);
       }
     } else if (type == BLTU) {
       uint32_t UV1 = V1, UV2 = V2;
       if (UV1 < UV2) {
         pc->SetPCTask(current_pc + imm);
         task.discard_this = true;
+        predictor->SubmitResult(current_pc, true);
+      } else {
+        predictor->SubmitResult(current_pc, false);
       }
     } else if (type == BNE) {
       if (V1 != V2) {
         pc->SetPCTask(current_pc + imm);
         task.discard_this = true;
+        predictor->SubmitResult(current_pc, true);
+      } else {
+        predictor->SubmitResult(current_pc, false);
       }
     }
     rf->SetNewDepenence(0, -1);
