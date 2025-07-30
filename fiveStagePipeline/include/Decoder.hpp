@@ -67,7 +67,7 @@ public:
   void SetFromPC(int32_t machine_code);
   void SetCurrentPC(int32_t current_pc);
   void PredictFailed();
-  void CommitMessageFromROB(CommitMessage commit_message[], int32_t commit_message_len);
+  void CommitMessageFromROB(int32_t rob_ind, int32_t value);
   void PassRobTail(int32_t tail);
   void PassRF(int32_t rf_data[], int32_t rf_dependence[]);
   void Run();

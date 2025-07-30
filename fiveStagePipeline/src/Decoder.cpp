@@ -26,11 +26,8 @@ void Decoder::PredictFailed() {
   task.rob_is_full = false;
 }
 
-void Decoder::CommitMessageFromROB(CommitMessage commit_message[], int32_t commit_message_len) {
-  task.commit_message_len = commit_message_len;
-  for (int i = 0; i < commit_message_len; ++i) {
-    task.commit_message[i] = commit_message[i];
-  }
+void Decoder::CommitMessageFromROB(int32_t rob_ind, int32_t value) {
+  task.commit_message[task.commit_message_len++] = {rob_ind, value};
 }
 
 void Decoder::PassRobTail(int32_t tail) {
@@ -48,6 +45,7 @@ void Decoder::Update() {
   if (task.predict_failed) {
     predict_falied = true;
     task.predict_failed = false;
+    task.commit_message_len = 0;
     return;
   }
   if (task.discard_this) {
@@ -58,6 +56,7 @@ void Decoder::Update() {
   task.rob_is_full = false;
   predict_falied = false;
   if (rob_is_full) {
+    task.commit_message_len = 0;
     return;
   }
   machine_code = task.machine_code;
@@ -71,6 +70,7 @@ void Decoder::Update() {
   for (int i = 0; i < commit_message_len; ++i) {
     commit_message[i] = task.commit_message[i];
   }
+  task.commit_message_len = 0;
 }
 
 std::string IntToString(uint32_t x) {
