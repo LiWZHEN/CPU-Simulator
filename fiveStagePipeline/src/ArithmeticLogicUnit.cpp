@@ -15,6 +15,10 @@ void ALU::SetTask(int32_t destination, InstructionType type, int32_t v1, int32_t
 }
 
 void ALU::Update() {
+  halted = task.halted;
+  if (halted) {
+    return;
+  }
   predict_failed = task.predict_failed;
   if (predict_failed) {
     type = InstructionType::NONE;
@@ -32,7 +36,14 @@ void ALU::SetPredictFault() {
   task.predict_failed = true;
 }
 
+void ALU::Halt() {
+  task.halted = true;
+}
+
 void ALU::Run() {
+  if (halted) {
+    return;
+  }
   if (type == InstructionType::NONE) {
     rob->SetFromALU(InstructionType::NONE, 0, 0);
     rs->SetFromALU(InstructionType::NONE, 0, 0);

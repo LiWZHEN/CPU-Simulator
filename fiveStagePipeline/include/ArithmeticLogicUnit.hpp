@@ -8,6 +8,9 @@
 #include "ProgramCounter.hpp"
 
 struct ALUTask {
+
+  bool halted = false;
+
   bool predict_failed = false;
   int32_t destination = 0;
   InstructionType type = InstructionType::NONE;
@@ -22,6 +25,8 @@ class ALU {
 
   ALUTask task;
 
+  bool halted = false;
+
   bool predict_failed = false;
   int32_t destination = 0;
   InstructionType type = InstructionType::NONE;
@@ -33,6 +38,7 @@ public:
   void Update();
   void SetPredictFault();
   void Run();
+  void Halt();
 };
 
 #endif
