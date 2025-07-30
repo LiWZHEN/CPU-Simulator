@@ -3,19 +3,52 @@
 #include <iostream>
 
 
-void Decoder::Connect(ROB *rob, RS *rs, LSB *lsb, RegisterFile* register_file) {
+void Decoder::Connect(ROB *rob, RS *rs, LSB *lsb, RegisterFile* rf,
+    ProgramCounter *pc, Predictor *predictor) {
   this->rob = rob;
   this->rs = rs;
   this->lsb = lsb;
-  this->register_file = register_file;
+  this->rf = rf;
+  this->pc = pc;
+  this->predictor = predictor;
 }
 
-void Decoder::SetTask(int32_t machine_code) {
-  new_task.machine_code = machine_code;
+void Decoder::SetFromPC(int32_t machine_code) {
+  task.machine_code = machine_code;
+}
+
+void Decoder::PredictFailed() {
+  task.predict_failed = true;
+  task.rob_is_full = false;
 }
 
 void Decoder::Update() {
-  old_task = new_task;
+  if (task.predict_failed) {
+    predict_falied = true;
+    task.predict_failed = false;
+    return;
+  }
+  if (task.discard_this) {
+    task.machine_code = 0;
+    task.discard_this = false;
+  }
+  rob_is_full = task.rob_is_full;
+  task.rob_is_full = false;
+  predict_falied = false;
+  if (rob_is_full) {
+    return;
+  }
+  machine_code = task.machine_code;
+  current_pc = task.current_pc;
+  rob_tail = task.rob_tail;
+  for (int i = 0; i < 32; ++i) {
+    rf_data[i] = task.rf_data[i];
+    rf_dependence[i] = task.rf_dependence[i];
+  }
+  commit_message_len = task.commit_message_len;
+  for (int i = 0; i < commit_message_len; ++i) {
+    commit_message[i] = task.commit_message[i];
+  }
 }
 
 std::string IntToString(uint32_t x) {
@@ -49,342 +82,216 @@ uint32_t StringToInt(const std::string &str) {
 }
 
 void Decoder::Decode_R() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t rd = (code >> 7) & 0b11111,
       funct3 = (code >> 12) & 0b111,
       rs1 = (code >> 15) & 0b11111,
       rs2 = (code >> 20) & 0b11111,
       funct7 = (code >> 25) & 0b1111111;
+  if (rd == 0) {
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rf->SetNewDepenence(0, -1);
+    return;
+  }
+  InstructionType type;
+  int32_t Q1, Q2, V1, V2;
+  Q1 = rf_dependence[rs1];
+  if (Q1 == -1) {
+    V1 = rf_data[rs1];
+  } else {
+    for (int i = 0; i < commit_message_len; ++i) {
+      if (commit_message[i].rob_ind == Q1) {
+        Q1 = -1;
+        V1 = commit_message[i].value;
+        break;
+      }
+    }
+  }
+  Q2 = rf_dependence[rs2];
+  if (Q2 == -1) {
+    V2 = rf_data[rs1];
+  } else {
+    for (int i = 0; i < commit_message_len; ++i) {
+      if (commit_message[i].rob_ind == Q2) {
+        Q2 = -1;
+        V2 = commit_message[i].value;
+        break;
+      }
+    }
+  }
   switch (funct3) {
   case 0b000:
     if (funct7 == 0b0000000) {
-      new_task.type = ADD;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.rs2 = rs2;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      new_task.Q2 = register_file->GetDependence(rs2);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      if (new_task.Q2 == -1) {
-        new_task.V2 = register_file->GetData(rs2);
-      }
-      return;
+      type = ADD;
     } else if (funct7 == 0b0100000) {
-      new_task.type = SUB;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.rs2 = rs2;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      new_task.Q2 = register_file->GetDependence(rs2);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      if (new_task.Q2 == -1) {
-        new_task.V2 = register_file->GetData(rs2);
-      }
-      return;
+      type = SUB;
     } else {
       throw InvalidFunction();
     }
+    break;
   case 0b111:
-    new_task.type = AND;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    return;
+    type = AND;
+    break;
   case 0b110:
-    new_task.type = OR;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    return;
+    type = OR;
+    break;
   case 0b100:
-    new_task.type = XOR;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    return;
+    type = XOR;
+    break;
   case 0b001:
-    new_task.type = SLL;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    return;
+    type = SLL;
+    break;
   case 0b101:
     if (funct7 == 0b0000000) {
-      new_task.type = SRL;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.rs2 = rs2;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      new_task.Q2 = register_file->GetDependence(rs2);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      if (new_task.Q2 == -1) {
-        new_task.V2 = register_file->GetData(rs2);
-      }
-      return;
+      type = SRL;
     } else if (funct7 == 0b0100000) {
-      new_task.type = SRA;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.rs2 = rs2;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      new_task.Q2 = register_file->GetDependence(rs2);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      if (new_task.Q2 == -1) {
-        new_task.V2 = register_file->GetData(rs2);
-      }
-      return;
+      type = SRA;
     } else {
       throw InvalidFunction();
     }
+    break;
   case 0b010:
-    new_task.type = SLT;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    return;
+    type = SLT;
+    break;
   case 0b011:
-    new_task.type = SLTU;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    return;
+    type = SLTU;
+    break;
   default:
     throw InvalidFunction();
   }
+  rs->SetFromDecoder(type, V1, V2, Q1, Q2, rob_tail);
+  rf->SetNewDepenence(rd, rob_tail);
+  lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+  rob->SetFromDecoder(type, rd, 0, false);
 }
 
 void Decoder::Decode_IA() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t rd = (code >> 7) & 0b11111,
       funct3 = (code >> 12) & 0b111,
       rs1 = (code >> 15) & 0b11111;
-  if (funct3 == 0b001) {
-    const int32_t imm = (code >> 20) & 0b11111,
-        funct7 = (code >> 25) & 0b1111111;
-    new_task.type = SLLI;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    new_task.imm = imm;
+  if (rd == 0) {
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rf->SetNewDepenence(0, -1);
     return;
+  }
+  InstructionType type;
+  int32_t Q1, V1, imm;
+  Q1 = rf_dependence[rs1];
+  if (Q1 == -1) {
+    V1 = rf_data[rs1];
+  } else {
+    for (int i = 0; i < commit_message_len; ++i) {
+      if (commit_message[i].rob_ind == Q1) {
+        Q1 = -1;
+        V1 = commit_message[i].value;
+        break;
+      }
+    }
+  }
+  if (funct3 == 0b001) {
+    const int32_t funct7 = (code >> 25) & 0b1111111;
+    imm = (code >> 20) & 0b11111;
+    type = SLLI;
   } else if (funct3 == 0b101) {
-    const int32_t imm = (code >> 20) & 0b11111,
-        funct7 = (code >> 25) & 0b1111111;
+    const int32_t funct7 = (code >> 25) & 0b1111111;
+    imm = (code >> 20) & 0b11111;
     if (funct7 == 0b0000000) {
-      new_task.type = SRLI;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      new_task.imm = imm;
-      return;
+      type = SRLI;
     } else if (funct7 == 0b0100000) {
-      new_task.type = SRAI;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      new_task.imm = imm;
-      return;
+      type = SRAI;
     } else {
       throw InvalidFunction();
     }
   } else {
-    const int32_t imm = (((code >> 20) & 0b111111111111) << 20) >> 20;
+    imm = (((code >> 20) & 0b111111111111) << 20) >> 20;
     switch (funct3) {
     case 0b000:
-      new_task.type = ADDI;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      new_task.imm = imm;
-      return;
+      type = ADDI;
+      break;
     case 0b111:
-      new_task.type = ANDI;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      new_task.imm = imm;
-      return;
+      type = ANDI;
+      break;
     case 0b110:
-      new_task.type = ORI;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      new_task.imm = imm;
-      return;
+      type = ORI;
+      break;
     case 0b100:
-      new_task.type = XORI;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      new_task.imm = imm;
-      return;
+      type = XORI;
+      break;
     case 0b010:
-      new_task.type = SLTI;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      new_task.imm = imm;
-      return;
+      type = SLTI;
+      break;
     case 0b011:
-      new_task.type = SLTIU;
-      new_task.destination = rd;
-      new_task.rs1 = rs1;
-      new_task.Q1 = register_file->GetDependence(rs1);
-      if (new_task.Q1 == -1) {
-        new_task.V1 = register_file->GetData(rs1);
-      }
-      new_task.imm = imm;
-      return;
+      type = SLTIU;
+      break;
     default:
       throw InvalidFunction();
     }
   }
+  rf->SetNewDepenence(rd, rob_tail);
+  rs->SetFromDecoder(type, V1, imm, Q1, -1, rob_tail);
+  rob->SetFromDecoder(type, rd, 0, false);
+  lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
 }
 
 void Decoder::Decode_IM() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t rd = (code >> 7) & 0b11111,
       funct3 = (code >> 12) & 0b111,
       rs1 = (code >> 15) & 0b11111,
       imm = (((code >> 20) & 0b111111111111) << 20) >> 20;
+  if (rd == 0) {
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rf->SetNewDepenence(0, -1);
+    return;
+  }
+  InstructionType type;
+  int32_t V1, Q1;
+  Q1 = rf_dependence[rs1];
+  if (Q1 == -1) {
+    V1 = rf_data[rs1];
+  } else {
+    for (int i = 0; i < commit_message_len; ++i) {
+      if (commit_message[i].rob_ind == Q1) {
+        Q1 = -1;
+        V1 = commit_message[i].value;
+        break;
+      }
+    }
+  }
   switch (funct3) {
   case 0b000:
-    new_task.type = LB;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    new_task.imm = imm;
-    return;
+    type = LB;
+    break;
   case 0b100:
-    new_task.type = LBU;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    new_task.imm = imm;
-    return;
+    type = LBU;
+    break;
   case 0b001:
-    new_task.type = LH;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    new_task.imm = imm;
-    return;
+    type = LH;
+    break;
   case 0b101:
-    new_task.type = LHU;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    new_task.imm = imm;
-    return;
+    type = LHU;
+    break;
   case 0b010:
-    new_task.type = LW;
-    new_task.destination = rd;
-    new_task.rs1 = rs1;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    new_task.imm = imm;
-    return;
+    type = LW;
+    break;
   default:
     throw InvalidFunction();
   }
+  rf->SetNewDepenence(rd, rob_tail);
+  rs->SetFromDecoder(type, V1, imm, Q1, -1, rob_tail);
+  rob->SetFromDecoder(type, rd, 0, false);
+  lsb->SetFromDecoder(type, -1, -1, rob_tail, false);
 }
 
 void Decoder::Decode_IC() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t rd = (code >> 7) & 0b11111,
       funct3 = (code >> 12) & 0b111,
       rs1 = (code >> 15) & 0b11111,
@@ -392,219 +299,251 @@ void Decoder::Decode_IC() {
   if (funct3 != 0b000) {
     throw InvalidFunction();
   }
-  new_task.type = JALR;
-  new_task.destination = rd;
-  new_task.rs1 = rs1;
-  new_task.Q1 = register_file->GetDependence(rs1);
-  if (new_task.Q1 == -1) {
-    new_task.V1 = register_file->GetData(rs1);
+  int32_t V1, Q1;
+  Q1 = rf_dependence[rs1];
+  if (Q1 == -1) {
+    V1 = rf_data[rs1];
+  } else {
+    for (int i = 0; i < commit_message_len; ++i) {
+      if (commit_message[i].rob_ind == Q1) {
+        Q1 = -1;
+        V1 = commit_message[i].value;
+        break;
+      }
+    }
   }
-  new_task.imm = imm;
-  return;
-}
-
-void Decoder::Decode_IO() {
-  const int32_t code = new_task.machine_code;
-  const int32_t rd = (code >> 7) & 0b11111,
-      funct3 = (code >> 12) & 0b111,
-      rs1 = (code >> 15) & 0b11111,
-      imm = (((code >> 20) & 0b111111111111) << 20) >> 20; 
-  if (funct3 != 0b000) {
-    throw InvalidFunction();
+  if (rd == 0) {
+    rf->SetNewDepenence(0, -1);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);    
+  } else {
+    rf->SetNewDepenence(rd, rob_tail);
+    rob->SetFromDecoder(InstructionType::JALR, rd, current_pc + 4, true);
   }
-  if (imm == 0) {
-    throw "ebreak";
-  }
-  if (imm == 1) {
-    throw "ecall";
-  }
-  throw InvalidFunction();
+  rs->SetFromDecoder(InstructionType::JALR, V1, imm, Q1, -1, rob_tail);
+  lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+  pc->SetPCWait();
 }
 
 void Decoder::Decode_S() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t funct3 = (code >> 12) & 0b111,
       rs1 = (code >> 15) & 0b11111,
       rs2 = (code >> 20) & 0b11111,
       imm = (((((code >> 25) & 0b1111111) << 5) | ((code >> 7) & 0b11111)) << 20) >> 20;
+  InstructionType type;
+  int32_t V1, V2, Q1, Q2;
+  Q1 = rf_dependence[rs1];
+  if (Q1 == -1) {
+    V1 = rf_data[rs1];
+  } else {
+    for (int i = 0; i < commit_message_len; ++i) {
+      if (commit_message[i].rob_ind == Q1) {
+        Q1 = -1;
+        V1 = commit_message[i].value;
+        break;
+      }
+    }
+  }
   switch (funct3) {
   case 0b000:
-    new_task.type = SB;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = SB;
+    break;
   case 0b001:
-    new_task.type = SH;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = SH;
+    break;
   case 0b010:
-    new_task.type = SW;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = SW;
+    break;
   default:
     throw InvalidFunction();
   }
+  rf->SetNewDepenence(0, -1);
+  rs->SetFromDecoder(type, V1, imm, Q1, -1, rob_tail);
+  rob->SetFromDecoder(type, rs2, -1, false);
+  lsb->SetFromDecoder(type, -1, -1, rob_tail, false);
 }
 
 void Decoder::Decode_B() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t funct3 = (code >> 12) & 0b111,
       rs1 = (code >> 15) & 0b11111,
       rs2 = (code >> 20) & 0b11111,
       imm = (((((code >> 31) & 0b1) << 12) | (((code >> 7) & 0b1) << 11) | (((code >> 25) & 0b111111) << 5) | (((code >> 8) & 0b1111) << 1)) << 19) >> 19;
+  InstructionType type;
+  int32_t V1, V2, Q1, Q2;
+  Q1 = rf_dependence[rs1];
+  if (Q1 == -1) {
+    V1 = rf_data[rs1];
+  } else {
+    for (int i = 0; i < commit_message_len; ++i) {
+      if (commit_message[i].rob_ind == Q1) {
+        Q1 = -1;
+        V1 = commit_message[i].value;
+        break;
+      }
+    }
+  }
+  Q2 = rf_dependence[rs2];
+  if (Q2 == -1) {
+    V2 = rf_data[rs1];
+  } else {
+    for (int i = 0; i < commit_message_len; ++i) {
+      if (commit_message[i].rob_ind == Q2) {
+        Q2 = -1;
+        V2 = commit_message[i].value;
+        break;
+      }
+    }
+  }
   switch (funct3) {
   case 0b000:
-    new_task.type = BEQ;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = BEQ;
+    break;
   case 0b101:
-    new_task.type = BGE;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = BGE;
+    break;
   case 0b111:
-    new_task.type = BGEU;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = BGEU;
+    break;
   case 0b100:
-    new_task.type = BLT;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = BLT;
+    break;
   case 0b110:
-    new_task.type = BLTU;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = BLTU;
+    break;
   case 0b001:
-    new_task.type = BNE;
-    new_task.rs1 = rs1;
-    new_task.rs2 = rs2;
-    new_task.Q1 = register_file->GetDependence(rs1);
-    new_task.Q2 = register_file->GetDependence(rs2);
-    if (new_task.Q1 == -1) {
-      new_task.V1 = register_file->GetData(rs1);
-    }
-    if (new_task.Q2 == -1) {
-      new_task.V2 = register_file->GetData(rs2);
-    }
-    new_task.imm = imm;
-    return;
+    type = BNE;
+    break;
   default:
     throw InvalidFunction();
+  }
+  
+  if (Q1 == -1 && Q2 == -1) {
+    if (type == BEQ) {
+      if (V1 == V2) {
+        pc->SetPCTask(current_pc + imm);
+        task.discard_this = true;
+      }
+    } else if (type == BGE) {
+      if (V1 >= V2) {
+        pc->SetPCTask(current_pc + imm);
+        task.discard_this = true;
+      }
+    } else if (type == BGEU) {
+      uint32_t UV1 = V1, UV2 = V2;
+      if (UV1 >= UV2) {
+        pc->SetPCTask(current_pc + imm);
+        task.discard_this = true;
+      }
+    } else if (type == BLT) {
+      if (V1 < V2) {
+        pc->SetPCTask(current_pc + imm);
+        task.discard_this = true;
+      }
+    } else if (type == BLTU) {
+      uint32_t UV1 = V1, UV2 = V2;
+      if (UV1 < UV2) {
+        pc->SetPCTask(current_pc + imm);
+        task.discard_this = true;
+      }
+    } else if (type == BNE) {
+      if (V1 != V2) {
+        pc->SetPCTask(current_pc + imm);
+        task.discard_this = true;
+      }
+    }
+    rf->SetNewDepenence(0, -1);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+  } else {
+    bool predict_jump = predictor->QueryJump(current_pc);
+    if (predict_jump) {
+      pc->SetPCTask(current_pc + imm);
+      task.discard_this = true;
+      rob->SetFromDecoder(type, current_pc + 4, 1, false);
+    } else {
+      rob->SetFromDecoder(type, current_pc + imm, 0, false);
+    }
+    rf->SetNewDepenence(0, -1);
+    rs->SetFromDecoder(type, V1, V2, Q1, Q2, rob_tail);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   }
 }
 
 void Decoder::Decode_J() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t rd = (code >> 7) & 0b11111,
       imm = (((((code >> 31) & 0b1) << 20) | (((code >> 12) & 0b11111111) << 12)
       | (((code >> 20) & 0b1) << 11) | (((code >> 21) & 0b1111111111) << 1)) << 11) >> 11;
-  new_task.type = JAL;
-  new_task.destination = rd;
-  new_task.imm = imm;
-  return;
+  pc->SetPCTask(current_pc + imm);
+  task.discard_this = true;
+  if (rd == 0) {
+    rf->SetNewDepenence(0, -1);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    return;
+  }
+  rf->SetNewDepenence(rd, rob_tail);
+  rob->SetFromDecoder(InstructionType::JAL, rd, current_pc + 4, true);
+  rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+  lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
 }
 
 void Decoder::Decode_AUIPC() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t rd = (code >> 7) & 0b11111,
       imm = code & 0b11111111111111111111000000000000;
-  new_task.type = AUIPC;
-  new_task.destination = rd;
-  new_task.imm = imm;
+  const int32_t new_pc = current_pc + imm;
+  if (rd == 0) {
+    rf->SetNewDepenence(0, -1);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    return;
+  }
+  rf->SetNewDepenence(rd, rob_tail);
+  rob->SetFromDecoder(InstructionType::AUIPC, rd, new_pc, true);
+  rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+  lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   return;
 }
 
 void Decoder::Decode_LUI() {
-  const int32_t code = new_task.machine_code;
+  const int32_t code = machine_code;
   const int32_t rd = (code >> 7) & 0b11111,
       imm = code & 0b11111111111111111111000000000000;
-  new_task.type = LUI;
-  new_task.destination = rd;
-  new_task.imm = imm;
+  if (rd == 0) {
+    rf->SetNewDepenence(0, -1);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    return;
+  }
+  rf->SetNewDepenence(rd, rob_tail);
+  rob->SetFromDecoder(InstructionType::AUIPC, rd, imm, true);
+  rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+  lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   return;
 }
 
 void Decoder::Run() {
-  const int32_t code = new_task.machine_code;
-  const int32_t opcode = code & 0b1111111;
+  if (machine_code == 0 || predict_falied) {
+    rf->SetNewDepenence(0, -1);
+    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    return;
+  }
+  if (machine_code == 0x0ff00513) {
+    rf->SetNewDepenence(0, -1);
+    rob->SetFromDecoder(InstructionType::EXIT, 0, 0, true);
+    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    return;
+  }
+  const int32_t opcode = machine_code & 0b1111111;
   switch (opcode) {
   case 0b0110011:
     Decode_R();
@@ -634,8 +573,7 @@ void Decoder::Run() {
     Decode_IC();
     return;
   case 0b1110011:
-    Decode_IO();
-    return;
+    throw "Unexpected I-type instruction!";
   default:
     throw NoMatchedType();
   }
