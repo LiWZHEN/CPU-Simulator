@@ -53,3 +53,7 @@ void RegisterFile::Run() {
 void RegisterFile::SetFromROB(InstructionType type, int32_t rd, int32_t value, int32_t rob_ind) {
   task.task_from_rob[task.task_from_rob_len++] = {type, rd, value, rob_ind};
 }
+
+int32_t RegisterFile::GetData(const int32_t ind) const {
+  return rf[ind];
+}

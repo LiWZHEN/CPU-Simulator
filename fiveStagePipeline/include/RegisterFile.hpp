@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "Decoder.hpp"
+#include "CPU.hpp"
 
 struct TaskUnitFromROB {
   InstructionType type = InstructionType::NONE;
@@ -33,6 +34,7 @@ class RegisterFile {
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 public:
   RegisterFile() = default;
+  int32_t GetData(const int32_t ind) const;
   void Connect(Decoder *decoder, LSB *lsb);
   void SetNewDepenence(int32_t rd, int32_t dependence);
   void SetFromROB(InstructionType type, int32_t rd, int32_t value, int32_t rob_ind);
