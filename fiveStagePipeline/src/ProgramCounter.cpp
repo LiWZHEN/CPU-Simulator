@@ -34,6 +34,10 @@ void ProgramCounter::ROBFull() {
 }
 
 void ProgramCounter::Update() {
+  halted = task.halted;
+  if (halted) {
+    return;
+  }
   wait_for_next = task.wait_for_next;
   if (wait_for_next) {
     return;
@@ -50,6 +54,9 @@ void ProgramCounter::Update() {
 }
 
 void ProgramCounter::Run() {
+  if (halted) {
+    return;
+  }
   if (predict_failed || force_jump) {
     pc = jump_to;
   }
@@ -60,4 +67,8 @@ void ProgramCounter::Run() {
   decoder->SetFromPC(machine_code);
   decoder->SetCurrentPC(pc);
   pc += 4;
+}
+
+void ProgramCounter::Halt() {
+  task.halted = true;
 }

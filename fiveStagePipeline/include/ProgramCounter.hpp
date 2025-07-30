@@ -5,6 +5,9 @@
 #include "Decoder.hpp"
 
 struct PCTask {
+
+  bool halted = false;
+
   bool predict_failed = false;
   bool wait_for_next = false;
   bool rob_is_full = false;
@@ -17,6 +20,8 @@ class ProgramCounter {
   Decoder *decoder = nullptr;
 
   PCTask task;
+
+  bool halted = false;
 
   int32_t pc = 0;
   bool predict_failed = false;
@@ -35,5 +40,6 @@ public:
   void ROBFull();
   void Update();
   void Run();
+  void Halt();
 };
 #endif
