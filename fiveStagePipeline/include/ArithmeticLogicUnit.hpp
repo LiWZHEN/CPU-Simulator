@@ -2,27 +2,37 @@
 #define ARITHMETIC_LOGIC_UNIT_HPP
 
 #include <cstdint>
-
-enum op {NONE, ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU};
+#include "ReorderBuffer.hpp"
+#include "ReservationStation.hpp"
+#include "LoadStoreBuffer.hpp"
+#include "ProgramCounter.hpp"
 
 struct ALUTask {
-  bool destination_is_rs = false;
-  bool destination_is_lsb = false;
-  int32_t index = 0;
-  op operation = NONE;
+  bool predict_failed = false;
+  int32_t destination = 0;
+  InstructionType type = InstructionType::NONE;
   int32_t v1 = 0, v2 = 0;
-  int32_t ans = 0;
 };
 
 class ALU {
-  ALUTask old_task, new_task;
+  ROB *rob = nullptr;
+  RS *rs = nullptr;
+  LSB *lsb = nullptr;
+  ProgramCounter *pc = nullptr;
+
+  ALUTask task;
+
+  bool predict_failed = false;
+  int32_t destination = 0;
+  InstructionType type = InstructionType::NONE;
+  int32_t v1 = 0, v2 = 0;
 public:
   ALU() = default;
-  void SetTask(bool destination_is_rs, bool destination_is_lsb,
-      int32_t index, op operation, int32_t v1, int32_t v2);
+  void Connect(ROB *rob, RS *rs, LSB *lsb, ProgramCounter *pc);
+  void SetTask(int32_t destination, InstructionType type, int32_t v1, int32_t v2);
   void Update();
+  void SetPredictFault();
   void Run();
-  const ALUTask GetOld() const;
 };
 
 #endif
