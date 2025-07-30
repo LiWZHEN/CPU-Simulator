@@ -29,6 +29,10 @@ void ProgramCounter::PredictFailed(int32_t another_branch_pos) {
   task.wait_for_next = false;
 }
 
+void ProgramCounter::ROBFull() {
+  task.rob_is_full = true;
+}
+
 void ProgramCounter::Update() {
   wait_for_next = task.wait_for_next;
   if (wait_for_next) {

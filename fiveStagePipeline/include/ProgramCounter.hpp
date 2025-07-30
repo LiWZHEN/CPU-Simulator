@@ -32,6 +32,7 @@ public:
   void SetPCWait();
   int32_t GetMachineCode();
   void PredictFailed(int32_t another_branch_pos);
+  void ROBFull();
   void Update();
   void Run();
 };
