@@ -25,6 +25,8 @@ struct DecoderTask {
   int32_t commit_message_len = 0;
   int32_t current_pc = -1;
   bool discard_this = false;
+
+  bool halted = false;
 };
 
 struct CommitMessage {
@@ -49,6 +51,9 @@ class Decoder {
   CommitMessage commit_message[32];
   int32_t commit_message_len = 0;
   int32_t current_pc = 0;
+
+  bool halted = false;
+
   DecoderTask task;
 
   void Decode_R();
@@ -72,6 +77,7 @@ public:
   void PassRF(int32_t rf_data[], int32_t rf_dependence[]);
   void ROBFull();
   void Run();
+  void Halt();
 };
 
 std::string IntToString(uint32_t x);

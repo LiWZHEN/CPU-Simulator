@@ -46,6 +46,10 @@ void Decoder::ROBFull() {
 }
 
 void Decoder::Update() {
+  halted = task.halted;
+  if (halted) {
+    return;
+  }
   if (task.predict_failed) {
     predict_falied = true;
     task.predict_failed = false;
@@ -573,6 +577,9 @@ void Decoder::Decode_LUI() {
 }
 
 void Decoder::Run() {
+  if (halted) {
+    return;
+  }
   if (machine_code == 0 || predict_falied) {
     rf->SetNewDepenence(0, -1);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
@@ -621,4 +628,8 @@ void Decoder::Run() {
   default:
     throw NoMatchedType();
   }
+}
+
+void Decoder::Halt() {
+  task.halted = true;
 }
