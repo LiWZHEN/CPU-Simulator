@@ -17,9 +17,31 @@ void Decoder::SetFromPC(int32_t machine_code) {
   task.machine_code = machine_code;
 }
 
+void Decoder::SetCurrentPC(int32_t current_pc) {
+  task.current_pc = current_pc;
+}
+
 void Decoder::PredictFailed() {
   task.predict_failed = true;
   task.rob_is_full = false;
+}
+
+void Decoder::CommitMessageFromROB(CommitMessage commit_message[], int32_t commit_message_len) {
+  task.commit_message_len = commit_message_len;
+  for (int i = 0; i < commit_message_len; ++i) {
+    task.commit_message[i] = commit_message[i];
+  }
+}
+
+void Decoder::PassRobTail(int32_t tail) {
+  task.rob_tail = tail;
+}
+
+void Decoder::PassRF(int32_t rf_data[], int32_t rf_dependence[]) {
+  for (int i = 0; i < 32; ++i) {
+    task.rf_data[i] = rf_data[i];
+    task.rf_dependence[i] = rf_dependence[i];
+  }
 }
 
 void Decoder::Update() {
