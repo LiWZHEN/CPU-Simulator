@@ -41,6 +41,10 @@ void Decoder::PassRF(int32_t rf_data[], int32_t rf_dependence[]) {
   }
 }
 
+void Decoder::ROBFull() {
+  task.rob_is_full = true;
+}
+
 void Decoder::Update() {
   if (task.predict_failed) {
     predict_falied = true;

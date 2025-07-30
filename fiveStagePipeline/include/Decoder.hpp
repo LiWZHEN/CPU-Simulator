@@ -70,6 +70,7 @@ public:
   void CommitMessageFromROB(int32_t rob_ind, int32_t value);
   void PassRobTail(int32_t tail);
   void PassRF(int32_t rf_data[], int32_t rf_dependence[]);
+  void ROBFull();
   void Run();
 };
 
