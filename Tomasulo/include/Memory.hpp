@@ -12,14 +12,9 @@
 #include "ReorderBuffer.hpp"
 #include "ReservationStation.hpp"
 
-struct MemoryTaskUnit {
+struct MemoryTask {
   InstructionType type = InstructionType::NONE;
   int32_t address = -1, value = 0;
-};
-
-struct MemoryTask {
-  MemoryTaskUnit memory_tasks[32];
-  int32_t memory_tasks_len = 0;
 };
 
 class Memory {
@@ -30,8 +25,8 @@ class Memory {
 
   MemoryTask task;
 
-  MemoryTaskUnit memory_tasks[32];
-  int32_t memory_tasks_len = 0;
+  InstructionType type = InstructionType::NONE;
+  int32_t address = -1, value = 0;
   std::unordered_map<int32_t, uint8_t> memories;
 public:
   Memory() = default;

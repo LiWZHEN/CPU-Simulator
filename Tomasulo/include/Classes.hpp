@@ -1,5 +1,6 @@
 #ifndef CLASSES_HPP
 #define CLASSES_HPP
+#include <iostream>
 
 class ALU;
 class CPU;
@@ -19,5 +20,6 @@ enum InstructionType {NONE, ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT,
     LH, LHU, LW, SB, SH, SW, BEQ, BGE, BGEU, BLT, BLTU, BNE, JAL, JALR,
     AUIPC, LUI, EBREAK, ECALL, MUL, EXIT};
 
+std::string Print(InstructionType type);
 
 #endif

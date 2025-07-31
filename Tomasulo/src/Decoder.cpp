@@ -566,7 +566,7 @@ void Decoder::Decode_LUI() {
     return;
   }
   rf->SetNewDepenence(rd, rob_tail);
-  rob->SetFromDecoder(InstructionType::AUIPC, rd, imm, true);
+  rob->SetFromDecoder(InstructionType::LUI, rd, imm, true);
   rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   return;

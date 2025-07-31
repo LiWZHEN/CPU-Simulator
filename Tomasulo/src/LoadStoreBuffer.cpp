@@ -55,7 +55,7 @@ void LSB::Update() {
   cycle_from_decoder = task.cycle_from_decoder;
   committed_from_decoder = task.committed_from_decoder;
   if (type_from_decoder != InstructionType::NONE) {
-    std::cerr << std::dec << "LSB: get from decoder:  type: " << type_from_decoder
+    std::cerr << std::dec << "LSB: get from decoder:  type: " << Print(type_from_decoder)
         << ", address: " << address_from_decoder << ", cycle: " << cycle_from_decoder
         << ", committed: " << (committed_from_decoder ? "true" : "false") << '\n';
   }
@@ -63,8 +63,8 @@ void LSB::Update() {
   result_from_alu = task.result_from_alu;
   rob_ind_from_alu = task.rob_ind_from_alu;
   if (type_from_alu != InstructionType::NONE) {
-    std::cerr << std::dec << "LSB: get from alu:  type: " << type_from_alu << ", result: "
-        << result_from_alu << ", rob index: " << rob_ind_from_alu << '\n';
+    std::cerr << std::dec << "LSB: get from alu:  type: " << Print(type_from_alu)
+        << ", result: " << result_from_alu << ", rob index: " << rob_ind_from_alu << '\n';
   }
   store_rf_num = task.store_rf_num;
   for (int i = 0; i < store_rf_num; ++i) {
@@ -106,11 +106,12 @@ void LSB::Run() {
     }
   }
   if (type_from_decoder != InstructionType::NONE) {
-    lsb_structure.lsb_entries[lsb_structure.tail++] = {type_from_decoder, -1, -1, rob_tail, false};
+    lsb_structure.lsb_entries[lsb_structure.tail] = {type_from_decoder, -1, -1, rob_tail, false};
+    lsb_structure.tail = (lsb_structure.tail + 1) % 32;
   }
   if (type_from_alu != InstructionType::NONE) {
     for (int i = lsb_structure.head; i != lsb_structure.tail; ++i, i %= 32) {
-      if (lsb_structure.lsb_entries[i].rob_ind == rob_ind_from_alu) {
+      if (!lsb_structure.lsb_entries[i].committed && lsb_structure.lsb_entries[i].rob_ind == rob_ind_from_alu) {
         lsb_structure.lsb_entries[i].address = result_from_alu;
         lsb_structure.lsb_entries[i].committed = true;
       }
@@ -135,9 +136,10 @@ void LSB::Run() {
   } else {
     --lsb_structure.lsb_entries[lsb_structure.head].cycle;
     if (lsb_structure.lsb_entries[lsb_structure.head].cycle == 0) {
+      std::cerr << "task set!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << Print(lsb_structure.lsb_entries[lsb_structure.head].type) << "\n";
       memory->SetTask(lsb_structure.lsb_entries[lsb_structure.head].type,
             lsb_structure.lsb_entries[lsb_structure.head].address, lsb_structure.lsb_entries[lsb_structure.head].rob_ind);
-      lsb_structure.head = (lsb_structure.head + 31) % 32;
+      lsb_structure.head = (lsb_structure.head + 1) % 32;
     }
   }
 }

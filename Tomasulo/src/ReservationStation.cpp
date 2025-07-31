@@ -44,14 +44,15 @@ void RS::Update() {
   task.predict_failed = false;
   entry_from_decoder = task.entry_from_decoder;
   if (entry_from_decoder.type != InstructionType::NONE) {
-    std::cerr << std::dec << "RS: get from decoder:  busy: " << (entry_from_decoder.busy ? "true" : "false") << ", type: " << entry_from_decoder.type << ", V1: "
-        << (entry_from_decoder.Q1 == -1 ? entry_from_decoder.V1 : 111111111111111) << ", V2: " << (entry_from_decoder.Q2 == -1 ? entry_from_decoder.V2 : 111111111111111) << '\n';
+    std::cerr << std::dec << "RS: get from decoder:  busy: " << (entry_from_decoder.busy ? "true" : "false") << ", type: " << Print(entry_from_decoder.type)
+        << ", V1: " << (entry_from_decoder.Q1 == -1 ? entry_from_decoder.V1 : 111111111111111) << ", V2: " << (entry_from_decoder.Q2 == -1 ? entry_from_decoder.V2 : 111111111111111) << '\n';
   }
   type_from_alu = task.type_from_alu;
   value_from_alu = task.value_from_alu;
   rob_ind_from_alu = task.rob_ind_from_alu;
   if (type_from_alu != InstructionType::NONE) {
-    std::cerr << std::dec << "RS: get from alu:  type: " << type_from_alu << ", value: " << value_from_alu << ", index: " << rob_ind_from_alu << '\n';
+    std::cerr << std::dec << "RS: get from alu:  type: " << Print(type_from_alu)
+        << ", value: " << value_from_alu << ", index: " << rob_ind_from_alu << '\n';
   }
   loaded_ind = task.loaded_ind;
   loaded_value = task.loaded_value;

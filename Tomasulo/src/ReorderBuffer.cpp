@@ -31,7 +31,8 @@ void ROB::Update() {
     decoder_given_value = task.decoder_given_value;
     decoder_given_ready = task.decoder_given_ready;
     if (decoder_submit_type != InstructionType::NONE) {
-      std::cerr << "ROB: get task:  rd: " << decoder_given_rd << ", value: " << decoder_given_value << ", is_ready: " << (decoder_given_ready ? "true" : "false") << '\n';
+      std::cerr << "ROB: get task: " << Print(decoder_submit_type)
+      << " rd: " << decoder_given_rd << ", value: " << decoder_given_value << ", is_ready: " << (decoder_given_ready ? "true" : "false") << '\n';
     }
     load_rob_ind = task.load_rob_ind;
     load_value = task.load_value;
@@ -113,8 +114,8 @@ void ROB::Run() {
   lsb->GetROBTable(rob_ind, value, num);
   while (rob_structure.rob_entries[rob_structure.head].is_ready) {
     ROBEntry first_entry = rob_structure.rob_entries[rob_structure.head];
-    std::cerr << std::dec << "ROB: commit instruction at index " << rob_structure.head << ":  reg: " << first_entry.rd
-        << ", type: " << first_entry.type << ", value: " << first_entry.value << '\n';
+    std::cerr << std::dec << "ROB: commit instruction at index " << rob_structure.head << ":  reg: " << first_entry.rd << ", type: " << Print(first_entry.type)
+        << ", value: " << first_entry.value << '\n';
     if (first_entry.type == InstructionType::EXIT) {
       int32_t return_value = rf->GetData(10);
       std::cout << (return_value & 0x000000FF) << '\n';

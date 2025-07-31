@@ -1,4 +1,5 @@
 #include "../include/RegisterFile.hpp"
+#include <iostream>
 
 void RegisterFile::Connect(Decoder *decoder, LSB *lsb) {
   this->decoder = decoder;
@@ -48,6 +49,10 @@ void RegisterFile::Run() {
     }
   }
   decoder->PassRF(rf, dependence);
+  std::cerr << "current rf:\n";
+  for (int i = 0; i < 32; ++i) {
+    std::cerr << i << ":  value: " << rf[i] << ", dependence: " << dependence[i] << '\n';
+  }
 }
 
 void RegisterFile::SetFromROB(InstructionType type, int32_t rd, int32_t value, int32_t rob_ind) {
