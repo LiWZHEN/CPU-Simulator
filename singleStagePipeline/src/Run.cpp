@@ -277,10 +277,12 @@ void Interpreter::Run(Memory &memory) {
     int32_t instruction = (memory.Get(current_pc) | (memory.Get(current_pc + 1) << 8) | (memory.Get(current_pc + 2) << 16) | (memory.Get(current_pc + 3) << 24));
     if (instruction == 0x0ff00513) {
       int32_t return_value = reg_file.GetData(10);
+      std::cerr << "Exit\n";
       std::cout << (return_value & 0x000000FF) << '\n';
       return;
     }
     std::string command = decoder.Decode(instruction);
+    std::cerr << std::hex << current_pc << ": " << instruction << " " << command << '\n';
     if (command.substr(0, 4) == "add ") {
       const int32_t rd = StringToInt(command.substr(4, 8));
       const int32_t rs1 = StringToInt(command.substr(13, 8));
@@ -478,6 +480,9 @@ void Interpreter::Run(Memory &memory) {
       Lui(rd, imm);
     } else {
       throw InvalidInstruction();
+    }
+    for (int i = 0; i < 32; ++i) {
+      std::cerr << std::hex << i << ": " << reg_file.GetData(i) << '\n';
     }
     pc.NextPC();
   }
