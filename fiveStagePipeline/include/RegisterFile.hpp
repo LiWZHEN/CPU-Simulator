@@ -1,9 +1,9 @@
 #ifndef REGISTER_FILE_HPP
 #define REGISTER_FILE_HPP
 
+#include "Classes.hpp"
 #include <cstdint>
 #include "Decoder.hpp"
-#include "CPU.hpp"
 
 struct TaskUnitFromROB {
   InstructionType type = InstructionType::NONE;

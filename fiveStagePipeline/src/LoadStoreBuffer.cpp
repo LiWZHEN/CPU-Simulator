@@ -43,15 +43,7 @@ void LSB::PassROBTail(int32_t tail) {
   task.rob_tail = tail;
 }
 
-void LSB::Halt() {
-  task.halted = true;
-}
-
 void LSB::Update() {
-  halted = task.halted;
-  if (halted) {
-    return;
-  }
   predict_failed = task.predict_failed;
   task.predict_failed = false;
   type_from_decoder = task.type_from_decoder;
@@ -83,9 +75,6 @@ void LSB::Update() {
 }
 
 void LSB::Run() {
-  if (halted) {
-    cpu->Halt();
-  }
   if (predict_failed) {
     task.type_from_decoder = InstructionType::NONE;
     task.type_from_alu = InstructionType::NONE;

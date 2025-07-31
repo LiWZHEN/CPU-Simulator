@@ -1,6 +1,7 @@
 #ifndef LOAD_DATA_HPP
 #define LOAD_DATA_HPP
 
+#include "Classes.hpp"
 #include "Exception.hpp"
 #include <cstdint>
 #include "Memory.hpp"

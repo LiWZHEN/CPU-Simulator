@@ -1,7 +1,9 @@
 #ifndef RESERVATION_STATION_HPP
 #define RESERVATION_STATION_HPP
 
+#include "Classes.hpp"
 #include "ArithmeticLogicUnit.hpp"
+#include "Decoder.hpp"
 
 struct RSEntry {
   bool busy = false;
@@ -10,9 +12,6 @@ struct RSEntry {
 };
 
 struct RSTask {
-
-  bool halted = false;
-
   bool predict_failed = false;
   RSEntry entry_from_decoder;
   InstructionType type_from_alu = InstructionType::NONE;
@@ -24,8 +23,6 @@ struct RSTask {
 
 class RS {
   ALU *alu;
-
-  bool halted = false;
 
   bool predict_failed = false;
   RSEntry entry_from_decoder;
@@ -47,7 +44,6 @@ public:
   void PredictFailed();
   void GetROBTable(int32_t rob_ind[], int32_t value[], int32_t size);
   void PassROBTail(int32_t tail);
-  void Halt();
   void Update();
   void Run();
 };

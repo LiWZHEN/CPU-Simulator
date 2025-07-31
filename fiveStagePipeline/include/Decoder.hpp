@@ -1,6 +1,7 @@
 #ifndef DECODER_HPP
 #define DECODER_HPP
 
+#include "Classes.hpp"
 #include <cstdint>
 #include <string>
 #include "ReorderBuffer.hpp"
@@ -9,10 +10,10 @@
 #include "RegisterFile.hpp"
 #include "Predictor.hpp"
 
-enum InstructionType {NONE, ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT,
-    SLTU, ADDI, ANDI, ORI, XORI, SLLI, SRLI, SRAI, SLTI, SLTIU, LB, LBU,
-    LH, LHU, LW, SB, SH, SW, BEQ, BGE, BGEU, BLT, BLTU, BNE, JAL, JALR,
-    AUIPC, LUI, EBREAK, ECALL, MUL, EXIT};
+struct CommitMessage {
+  int32_t rob_ind;
+  int32_t value;
+};
 
 struct DecoderTask {
   int32_t machine_code;
@@ -25,13 +26,6 @@ struct DecoderTask {
   int32_t commit_message_len = 0;
   int32_t current_pc = -1;
   bool discard_this = false;
-
-  bool halted = false;
-};
-
-struct CommitMessage {
-  int32_t rob_ind;
-  int32_t value;
 };
 
 class Decoder {
@@ -51,8 +45,6 @@ class Decoder {
   CommitMessage commit_message[32];
   int32_t commit_message_len = 0;
   int32_t current_pc = 0;
-
-  bool halted = false;
 
   DecoderTask task;
 
@@ -77,7 +69,6 @@ public:
   void PassRF(int32_t rf_data[], int32_t rf_dependence[]);
   void ROBFull();
   void Run();
-  void Halt();
 };
 
 std::string IntToString(uint32_t x);

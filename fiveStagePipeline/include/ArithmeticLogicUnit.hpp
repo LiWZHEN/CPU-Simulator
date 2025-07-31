@@ -1,11 +1,13 @@
 #ifndef ARITHMETIC_LOGIC_UNIT_HPP
 #define ARITHMETIC_LOGIC_UNIT_HPP
 
+#include "Classes.hpp"
 #include <cstdint>
 #include "ReorderBuffer.hpp"
 #include "ReservationStation.hpp"
 #include "LoadStoreBuffer.hpp"
 #include "ProgramCounter.hpp"
+#include "Decoder.hpp"
 
 struct ALUTask {
 

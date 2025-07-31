@@ -2,6 +2,7 @@
 #define CPU_HPP
 
 #include <cstdint>
+#include "Classes.hpp"
 #include "Memory.hpp"
 #include "ArithmeticLogicUnit.hpp"
 #include "Decoder.hpp"

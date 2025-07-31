@@ -35,15 +35,7 @@ void RS::PassROBTail(int32_t tail) {
   task.rob_tail = tail;
 }
 
-void RS::Halt() {
-  task.halted = true;
-}
-
 void RS::Update() {
-  halted = task.halted;
-  if (halted) {
-    return;
-  }
   predict_failed = task.predict_failed;
   task.predict_failed = false;
   entry_from_decoder = task.entry_from_decoder;
@@ -66,9 +58,6 @@ void RS::Update() {
 }
 
 void RS::Run() {
-  if (halted) {
-    return;
-  }
   if (predict_failed) {
     for (int i = 0; i < 32; ++i) {
       rs_entries[i].busy = false;

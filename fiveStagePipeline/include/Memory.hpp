@@ -1,6 +1,7 @@
 #ifndef MEMORY_HPP
 #define MEMORY_HPP
 
+#include "Classes.hpp"
 #include <unordered_map>
 #include <queue>
 #include <cstdint>

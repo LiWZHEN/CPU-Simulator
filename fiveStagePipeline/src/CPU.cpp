@@ -36,9 +36,3 @@ void CPU::Step() {
   rs.Run();
   pc.Run();
 }
-
-void CPU::Halt() {
-  int32_t return_value = rf.GetData(10);
-  std::cout << (return_value & 0x000000FF) << '\n';
-  exit(0);
-}

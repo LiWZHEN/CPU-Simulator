@@ -1,6 +1,7 @@
 #ifndef PREDICTOR_HPP
 #define PREDICTOR_HPP
 
+#include "Classes.hpp"
 #include "ProgramCounter.hpp"
 #include <unordered_map>
 

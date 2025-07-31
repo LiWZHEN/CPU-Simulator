@@ -1,8 +1,9 @@
 #ifndef LOAD_STORE_BUFFER_HPP
 #define LOAD_STORE_BUFFER_HPP
 
+#include "Classes.hpp"
 #include "Memory.hpp"
-#include "CPU.hpp"
+#include "Decoder.hpp"
 
 struct LSBEntry {
   InstructionType type = InstructionType::NONE;
@@ -31,12 +32,10 @@ struct LSBTask {
   bool predict_failed = false;
   int32_t rob_ind[32], value[32], size = 0;
   int32_t rob_tail = 0;
-  bool halted = false;
 };
 
 class LSB {
   Memory *memory = nullptr;
-  CPU *cpu = nullptr;
 
   LSBTask task;
 
@@ -51,7 +50,6 @@ class LSB {
   bool predict_failed = false;
   int32_t rob_ind[32], value[32], size = 0;
   int32_t rob_tail = 0;
-  bool halted = false;
 
   LSBStructure lsb_structure;
 public:
@@ -64,7 +62,6 @@ public:
   void PredictFailed();
   void GetROBTable(int32_t rob_ind[], int32_t value[], int32_t size);
   void PassROBTail(int32_t tail);
-  void Halt();
   void Update();
   void Run();
 };

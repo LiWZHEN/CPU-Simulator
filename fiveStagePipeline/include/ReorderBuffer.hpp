@@ -1,6 +1,7 @@
 #ifndef REORDER_BUFFER_HPP
 #define REORDER_BUFFER_HPP
 
+#include "Classes.hpp"
 #include "ReservationStation.hpp"
 #include "LoadStoreBuffer.hpp"
 #include "Decoder.hpp"
@@ -24,8 +25,6 @@ struct ROBStructure {
 };
 
 struct ROBTask {
-  bool halted = false;
-
   bool predict_failed = false;
   InstructionType alu_compute_type = InstructionType::NONE;
   int32_t alu_given_value = 0;
@@ -48,8 +47,6 @@ class ROB {
 
   ROBTask task;
 
-  bool halted = false;
-
   bool predict_failed = false;
   InstructionType alu_compute_type = InstructionType::NONE;
   int32_t alu_given_value = 0;
@@ -70,6 +67,5 @@ public:
   void SetFromDecoder(InstructionType instruction_type, int32_t rd, int32_t value, bool is_ready);
   void GetLoadedData(int32_t rob_ind, int32_t value);
   void Run();
-  void Halt();
 };
 #endif

@@ -1,4 +1,5 @@
 #include "../include/ReorderBuffer.hpp"
+#include <iostream>
 
 void ROB::Connect(RS *rs, LSB *lsb, Decoder *decoder, RegisterFile *rf, ProgramCounter *pc, Predictor *predictor, ALU *alu) {
   this->rs = rs;
@@ -11,10 +12,6 @@ void ROB::Connect(RS *rs, LSB *lsb, Decoder *decoder, RegisterFile *rf, ProgramC
 }
 
 void ROB::Update() {
-  halted = task.halted;
-  if (halted) {
-    return;
-  }
   predict_failed = task.predict_failed;
   task.predict_failed = false;
   if (predict_failed) {
@@ -59,9 +56,6 @@ void ROB::GetLoadedData(int32_t rob_ind, int32_t value) {
 }
 
 void ROB::Run() {
-  if (halted) {
-    return;
-  }
   if (predict_failed) {
     rob_structure.head = 0;
     rob_structure.tail = 0;
@@ -109,12 +103,9 @@ void ROB::Run() {
   while (rob_structure.rob_entries[rob_structure.head].is_ready) {
     ROBEntry first_entry = rob_structure.rob_entries[rob_structure.head];
     if (first_entry.type == InstructionType::EXIT) {
-      alu->Halt();
-      decoder->Halt();
-      lsb->Halt();
-      pc->Halt();
-      rs->Halt();
-      return;
+      int32_t return_value = rf->GetData(10);
+      std::cout << (return_value & 0x000000FF) << '\n';
+      exit(0);
     }
     if (first_entry.type == InstructionType::BEQ || first_entry.type == InstructionType::BGE
         || first_entry.type == InstructionType::BGEU || first_entry.type == InstructionType::BLT
@@ -146,8 +137,4 @@ void ROB::Run() {
     decoder->ROBFull();
     pc->ROBFull();
   }
-}
-
-void ROB::Halt() {
-  task.halted = true;
 }
