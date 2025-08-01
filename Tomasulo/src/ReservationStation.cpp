@@ -70,7 +70,14 @@ void RS::Update() {
   }
   rob_tail = task.rob_tail;
   std::cerr << std::dec << "RS: get rob tail: " << rob_tail << '\n';
-
+  new_dependence_rd = task.new_dependence_rd;
+  new_dependence_rob_ind = task.new_dependence_rob_ind;
+  task.new_dependence_rd = -1;
+  task.new_dependence_rob_ind = -1;
+  rs1 = task.rs1;
+  rs2 = task.rs2;
+  task.rs1 = -1;
+  task.rs2 = -1;
   task.entry_from_decoder.type = InstructionType::NONE;
   task.type_from_alu = InstructionType::NONE;
   task.loaded_ind = -1;
@@ -102,6 +109,16 @@ void RS::Run() {
           entry_from_decoder.V2 = rob_value[i];
           break;
         }
+      }
+    }
+    if (rs1 != -1) {
+      if (rs1 == new_dependence_rd) {
+        entry_from_decoder.Q1 = new_dependence_rob_ind;
+      }
+    }
+    if (rs2 != -1) {
+      if (rs2 == new_dependence_rd) {
+        entry_from_decoder.Q2 = new_dependence_rob_ind;
       }
     }
     entry_from_decoder.destination = rob_tail;
@@ -139,5 +156,14 @@ void RS::Run() {
     }
   }
   alu->SetTask(0, InstructionType::NONE, 0, 0);
-  
+}
+
+void RS::SetNewDependence(int32_t rd, int32_t dependence) {
+  task.new_dependence_rd = rd;
+  task.new_dependence_rob_ind = dependence;
+}
+
+void RS::PassRS(int32_t rs1, int32_t rs2) {
+  task.rs1 = rs1;
+  task.rs2 = rs2;
 }
