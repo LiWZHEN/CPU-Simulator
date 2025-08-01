@@ -23,6 +23,7 @@ void Memory::Update() {
   type = task.type;
   address = task.address;
   value = task.value;
+  task.type = InstructionType::NONE;
 }
 
 void Memory::Run() {
