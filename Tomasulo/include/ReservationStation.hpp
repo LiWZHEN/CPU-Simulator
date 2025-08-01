@@ -11,6 +11,11 @@ struct RSEntry {
   int32_t V1, V2, Q1, Q2, destination;
 };
 
+struct IndAndValue {
+  int32_t rob_ind = 0;
+  int32_t value = 0;
+};
+
 struct RSTask {
   bool predict_failed = false;
   RSEntry entry_from_decoder;
@@ -19,6 +24,9 @@ struct RSTask {
   int32_t loaded_ind = -1, loaded_value = 0;
   int32_t rob_ind[32], rob_value[32], rob_table_size = 0;
   int32_t rob_tail = 0;
+  int32_t new_dependence_rd = -1;
+  int32_t new_dependence_rob_ind = -1;
+  int32_t rs1 = -1, rs2 = -1;
 };
 
 class RS {
@@ -31,6 +39,9 @@ class RS {
   int32_t loaded_ind = -1, loaded_value = 0;
   int32_t rob_ind[32], rob_value[32], rob_table_size = 0;
   int32_t rob_tail = -1;
+  int32_t new_dependence_rd = -1;
+  int32_t new_dependence_rob_ind = -1;
+  int32_t rs1 = -1, rs2 = -1;
 
   RSTask task;
 
@@ -46,5 +57,7 @@ public:
   void PassROBTail(int32_t tail);
   void Update();
   void Run();
+  void SetNewDependence(int32_t rd, int32_t dependence);
+  void PassRS(int32_t rs1, int32_t rs2);
 };
 #endif
