@@ -26,7 +26,7 @@ void CPU::Update() {
 
 void CPU::Step() {
   ++clock;
-  if (clock > 100) {
+  if (clock > 200000000) {
     exit(0);
   }
 
