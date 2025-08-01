@@ -3,7 +3,6 @@
 #include <iostream>
 
 int main() {
-  freopen("record.txt", "w", stderr);
   Memory memory;
   DataLoader data_loader;
   Interpreter interpreter;
