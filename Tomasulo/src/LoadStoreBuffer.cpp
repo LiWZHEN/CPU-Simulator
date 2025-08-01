@@ -119,10 +119,18 @@ void LSB::Run() {
   }
   for (int i = 0; i < store_rf_num; ++i) {
     StoreFromRF unit_task = store_from_rf[i];
+    for (int j = lsb_structure.head; j != lsb_structure.tail; ++j, j %= 32) {
+      if (!lsb_structure.lsb_entries[j].committed && lsb_structure.lsb_entries[j].rob_ind == unit_task.rob_ind) {
+        lsb_structure.lsb_entries[j].address = unit_task.address;
+        lsb_structure.lsb_entries[j].rob_ind = unit_task.value;
+        lsb_structure.lsb_entries[j].committed = true;
+      }
+    }
+  }
+  if (loaded_rob_ind != -1) {
     for (int i = lsb_structure.head; i != lsb_structure.tail; ++i, i %= 32) {
-      if (!lsb_structure.lsb_entries[i].committed && lsb_structure.lsb_entries[i].rob_ind == unit_task.rob_ind) {
-        lsb_structure.lsb_entries[i].address = unit_task.address;
-        lsb_structure.lsb_entries[i].rob_ind = unit_task.value;
+      if (!lsb_structure.lsb_entries[i].committed && lsb_structure.lsb_entries[i].rob_ind == loaded_rob_ind) {
+        lsb_structure.lsb_entries[i].address = loaded_value;
         lsb_structure.lsb_entries[i].committed = true;
       }
     }
