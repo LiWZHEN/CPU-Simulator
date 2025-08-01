@@ -97,9 +97,11 @@ void ROB::Run() {
         && decoder_given_rd != 0) {
       rf->SetNewDependence(decoder_given_rd, rob_structure.tail);
       rs->SetNewDependence(decoder_given_rd, rob_structure.tail);
+      decoder->SetNewDependence(decoder_given_rd, rob_structure.tail);
     } else {
       rf->SetNewDependence(0, -1);
       rs->SetNewDependence(-1, -1);
+      decoder->SetNewDependence(-1, -1);
     }
     rob_structure.rob_entries[rob_structure.tail].type = decoder_submit_type;
     rob_structure.rob_entries[rob_structure.tail].rd = decoder_given_rd;
@@ -110,6 +112,8 @@ void ROB::Run() {
     ++rob_structure.size;
   } else {
     rf->SetNewDependence(0, -1);
+    rs->SetNewDependence(-1, -1);
+    decoder->SetNewDependence(-1, -1);
   }
   if (load_rob_ind != -1) {
     rob_structure.rob_entries[load_rob_ind].value = load_value;

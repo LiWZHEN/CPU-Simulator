@@ -111,6 +111,7 @@ void RS::Run() {
         }
       }
     }
+    entry_from_decoder.destination = rob_tail;
     if (rs1 != -1) {
       if (rs1 == new_dependence_rd) {
         entry_from_decoder.Q1 = new_dependence_rob_ind;
@@ -121,11 +122,26 @@ void RS::Run() {
         entry_from_decoder.Q2 = new_dependence_rob_ind;
       }
     }
-    entry_from_decoder.destination = rob_tail;
     for (int i = 0; i < 32; ++i) {
       if (!rs_entries[i].busy) {
         rs_entries[i] = entry_from_decoder;
         break;
+      }
+    }
+  }
+
+  if (type_from_alu != InstructionType::NONE) {
+    for (int i = 0; i < 32; ++i) {
+      if (!rs_entries[i].busy) {
+        continue;
+      }
+      if (rs_entries[i].Q1 == rob_ind_from_alu) {
+        rs_entries[i].V1 = value_from_alu;
+        rs_entries[i].Q1 = -1;
+      }
+      if (rs_entries[i].Q2 == rob_ind_from_alu) {
+        rs_entries[i].V2 = value_from_alu;
+        rs_entries[i].Q2 = -1;
       }
     }
   }
@@ -139,12 +155,13 @@ void RS::Run() {
         rs_entries[i].Q1 = -1;
         rs_entries[i].V1 = loaded_value;
       }
-      if (rs_entries[i].busy == loaded_ind) {
+      if (rs_entries[i].Q2 == loaded_ind) {
         rs_entries[i].Q2 = -1;
         rs_entries[i].V2 = loaded_value;
       }
     }
   }
+
   for (int i = 0; i < 32; ++i) {
     if (!rs_entries[i].busy) {
       continue;

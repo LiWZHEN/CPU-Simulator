@@ -59,6 +59,10 @@ void Decoder::Update() {
     task.commit_message_len = 0; 
     return;
   }
+  new_dependence_rd = task.new_dependence_rd;
+  new_dependence_rob_ind = task.new_dependence_rob_ind;
+  task.new_dependence_rd = -1;
+  task.new_dependence_rob_ind = -1;
   machine_code = task.machine_code;
   current_pc = task.current_pc;
   for (int i = 0; i < 32; ++i) {
@@ -142,6 +146,14 @@ void Decoder::Decode_R() {
       }
     }
   }
+  if (new_dependence_rd != -1) {
+    if (rs1 == new_dependence_rd) {
+      Q1 = new_dependence_rob_ind;
+    }
+    if (rs2 == new_dependence_rd) {
+      Q2 = new_dependence_rob_ind;
+    }
+  }
   switch (funct3) {
   case 0b000:
     if (funct7 == 0b0000000) {
@@ -212,6 +224,11 @@ void Decoder::Decode_IA() {
         V1 = commit_message[i].value;
         break;
       }
+    }
+  }
+  if (new_dependence_rd != -1) {
+    if (rs1 == new_dependence_rd) {
+      Q1 = new_dependence_rob_ind;
     }
   }
   if (funct3 == 0b001) {
@@ -286,6 +303,11 @@ void Decoder::Decode_IM() {
       }
     }
   }
+  if (new_dependence_rd != -1) {
+    if (rs1 == new_dependence_rd) {
+      Q1 = new_dependence_rob_ind;
+    }
+  }
   switch (funct3) {
   case 0b000:
     type = LB;
@@ -333,6 +355,11 @@ void Decoder::Decode_IC() {
       }
     }
   }
+  if (new_dependence_rd != -1) {
+    if (rs1 == new_dependence_rd) {
+      Q1 = new_dependence_rob_ind;
+    }
+  }
   if (rd == 0) {
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);    
   } else {
@@ -363,6 +390,11 @@ void Decoder::Decode_S() {
         V1 = commit_message[i].value;
         break;
       }
+    }
+  }
+  if (new_dependence_rd != -1) {
+    if (rs1 == new_dependence_rd) {
+      Q1 = new_dependence_rob_ind;
     }
   }
   switch (funct3) {
@@ -414,6 +446,14 @@ void Decoder::Decode_B() {
         V2 = commit_message[i].value;
         break;
       }
+    }
+  }
+  if (new_dependence_rd != -1) {
+    if (rs1 == new_dependence_rd) {
+      Q1 = new_dependence_rob_ind;
+    }
+    if (rs2 == new_dependence_rd) {
+      Q2 = new_dependence_rob_ind;
     }
   }
   switch (funct3) {
@@ -558,4 +598,9 @@ void Decoder::Run() {
   default:
     throw NoMatchedType();
   }
+}
+
+void Decoder::SetNewDependence(int32_t rd, int32_t dependence) {
+  task.new_dependence_rd = rd;
+  task.new_dependence_rob_ind = dependence;
 }
