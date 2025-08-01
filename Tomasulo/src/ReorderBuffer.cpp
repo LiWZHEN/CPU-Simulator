@@ -69,6 +69,7 @@ void ROB::GetLoadedData(int32_t rob_ind, int32_t value) {
 
 void ROB::Run() {
   if (predict_failed) {
+    rf->SetNewDependence(0, -1);
     rob_structure.head = 0;
     rob_structure.tail = 0;
     rob_structure.size = 0;
@@ -90,6 +91,16 @@ void ROB::Run() {
     }
   }
   if (decoder_submit_type != InstructionType::NONE) {
+    if (decoder_submit_type != InstructionType::BEQ && decoder_submit_type != InstructionType::BGE
+        && decoder_submit_type != InstructionType::BGEU && decoder_submit_type != InstructionType::BLT
+        && decoder_submit_type != InstructionType::BLTU && decoder_submit_type != InstructionType::BNE
+        && decoder_given_rd != 0) {
+      rf->SetNewDependence(decoder_given_rd, rob_structure.tail);
+      rs->SetNewDependence(decoder_given_rd, rob_structure.tail);
+    } else {
+      rf->SetNewDependence(0, -1);
+      rs->SetNewDependence(-1, -1);
+    }
     rob_structure.rob_entries[rob_structure.tail].type = decoder_submit_type;
     rob_structure.rob_entries[rob_structure.tail].rd = decoder_given_rd;
     rob_structure.rob_entries[rob_structure.tail].value = decoder_given_value;
@@ -97,6 +108,8 @@ void ROB::Run() {
     ++rob_structure.tail;
     rob_structure.tail %= 32;
     ++rob_structure.size;
+  } else {
+    rf->SetNewDependence(0, -1);
   }
   if (load_rob_ind != -1) {
     rob_structure.rob_entries[load_rob_ind].value = load_value;
@@ -140,11 +153,11 @@ void ROB::Run() {
       rf->SetFromROB(first_entry.type, first_entry.rd, first_entry.value, rob_structure.head);
       decoder->CommitMessageFromROB(rob_structure.head, first_entry.value);
     }
+    rob_structure.rob_entries[rob_structure.head].is_ready = false;
     rob_structure.head++;
     rob_structure.head %= 32;
     --rob_structure.size;
   }
-  decoder->PassRobTail(rob_structure.tail);
   rs->PassROBTail(rob_structure.tail);
   lsb->PassROBTail(rob_structure.tail);
   if (rob_structure.size == 32) {
