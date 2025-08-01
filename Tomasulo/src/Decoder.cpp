@@ -60,7 +60,7 @@ void Decoder::Update() {
   task.rob_is_full = false;
   predict_falied = false;
   if (rob_is_full) {
-    task.commit_message_len = 0;
+    task.commit_message_len = 0; 
     return;
   }
   machine_code = task.machine_code;
@@ -348,6 +348,7 @@ void Decoder::Decode_IC() {
   rs->SetFromDecoder(InstructionType::JALR, V1, imm, Q1, -1, rob_tail);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   pc->SetPCWait();
+  task.discard_this = true;
 }
 
 void Decoder::Decode_S() {
@@ -586,6 +587,8 @@ void Decoder::Run() {
     rob->SetFromDecoder(InstructionType::EXIT, 0, 0, true);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    pc->SetPCWait();
+    task.discard_this = true;
     return;
   }
   const int32_t opcode = machine_code & 0b1111111;

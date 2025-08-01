@@ -136,7 +136,6 @@ void LSB::Run() {
   } else {
     --lsb_structure.lsb_entries[lsb_structure.head].cycle;
     if (lsb_structure.lsb_entries[lsb_structure.head].cycle == 0) {
-      std::cerr << "task set!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << Print(lsb_structure.lsb_entries[lsb_structure.head].type) << "\n";
       memory->SetTask(lsb_structure.lsb_entries[lsb_structure.head].type,
             lsb_structure.lsb_entries[lsb_structure.head].address, lsb_structure.lsb_entries[lsb_structure.head].rob_ind);
       lsb_structure.head = (lsb_structure.head + 1) % 32;

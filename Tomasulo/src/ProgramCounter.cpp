@@ -8,6 +8,7 @@ void ProgramCounter::Connect(Memory *memory, Decoder *decoder) {
 
 void ProgramCounter::SetPCTask(int32_t to) {
   if (!task.predict_failed) {
+    std::cerr << "Set pc to " << to << '\n';
     task.force_jump = true;
     task.jump_to = to;
     task.wait_for_next = false;
@@ -54,7 +55,11 @@ void ProgramCounter::Run() {
   if (predict_failed || force_jump) {
     pc = jump_to;
   }
-  if (wait_for_next || rob_is_full) {
+  if (wait_for_next) {
+    decoder->SetFromPC(0);
+    return;
+  }
+  if (rob_is_full) {
     return;
   }
   int32_t machine_code = GetMachineCode();

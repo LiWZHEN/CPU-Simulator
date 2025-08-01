@@ -31,14 +31,16 @@ void RegisterFile::PredictFailed() {
 
 void RegisterFile::Run() {
   for (int i = 0; i < task_from_rob_len; ++i) {
+    for (int j = 0; j < 32; ++j) {
+      if (dependence[j] == task_from_rob[i].rob_ind) {
+        dependence[j] = -1;
+      }
+    }
     if (task_from_rob[i].type == InstructionType::SB
         || task_from_rob[i].type == InstructionType::SH
         || task_from_rob[i].type == InstructionType::SW) {
       lsb->SetStoreFromRF(task_from_rob[i].value, rf[task_from_rob[i].rd], task_from_rob[i].rob_ind);
     } else {
-      if (dependence[task_from_rob[i].rd] == task_from_rob[i].rob_ind) {
-        dependence[task_from_rob[i].rd] = -1;
-      }
       rf[task_from_rob[i].rd] = task_from_rob[i].value;
     }
   }

@@ -6,7 +6,11 @@ void RS::Connect(ALU *alu) {
 }
 
 void RS::SetFromDecoder(InstructionType type, int32_t V1, int32_t V2, int32_t Q1, int32_t Q2, int32_t destination) {
-  task.entry_from_decoder = {true, type, V1, V2, Q1, Q2, destination};
+  if (type == InstructionType::NONE) {
+    task.entry_from_decoder = {false, type, V1, V2, Q1, Q2, destination};
+  } else {
+    task.entry_from_decoder = {true, type, V1, V2, Q1, Q2, destination};
+  }
 }
 
 void RS::SetFromALU(InstructionType type, int32_t result, int32_t rob_ind) {
@@ -81,31 +85,34 @@ void RS::Run() {
     alu->SetTask(-1, InstructionType::NONE, 0, 0);
     return;
   }
-  if (entry_from_decoder.Q1 != -1) {
-    for (int i = 0; i < rob_table_size; ++i) {
-      if (rob_ind[i] == entry_from_decoder.Q1) {
-        entry_from_decoder.Q1 = -1;
-        entry_from_decoder.V1 = rob_value[i];
+  if (entry_from_decoder.type != InstructionType::NONE) {
+    if (entry_from_decoder.Q1 != -1) {
+      for (int i = 0; i < rob_table_size; ++i) {
+        if (rob_ind[i] == entry_from_decoder.Q1) {
+          entry_from_decoder.Q1 = -1;
+          entry_from_decoder.V1 = rob_value[i];
+          break;
+        }
+      }
+    }
+    if (entry_from_decoder.Q2 != -1) {
+      for (int i = 0; i < rob_table_size; ++i) {
+        if (rob_ind[i] == entry_from_decoder.Q2) {
+          entry_from_decoder.Q2 = -1;
+          entry_from_decoder.V2 = rob_value[i];
+          break;
+        }
+      }
+    }
+    entry_from_decoder.destination = rob_tail;
+    for (int i = 0; i < 32; ++i) {
+      if (!rs_entries[i].busy) {
+        rs_entries[i] = entry_from_decoder;
         break;
       }
     }
   }
-  if (entry_from_decoder.Q2 != -1) {
-    for (int i = 0; i < rob_table_size; ++i) {
-      if (rob_ind[i] == entry_from_decoder.Q2) {
-        entry_from_decoder.Q2 = -1;
-        entry_from_decoder.V2 = rob_value[i];
-        break;
-      }
-    }
-  }
-  entry_from_decoder.destination = rob_tail;
-  for (int i = 0; i < 32; ++i) {
-    if (!rs_entries[i].busy) {
-      rs_entries[i] = entry_from_decoder;
-      break;
-    }
-  }
+
   if (loaded_ind != -1) {
     for (int i = 0; i < 32; ++i) {
       if (!rs_entries[i].busy) {
@@ -132,4 +139,5 @@ void RS::Run() {
     }
   }
   alu->SetTask(0, InstructionType::NONE, 0, 0);
+  
 }
