@@ -113,6 +113,7 @@ void Decoder::Decode_R() {
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rs->PassRS(-1, -1);
     return;
   }
   InstructionType type;
@@ -184,6 +185,7 @@ void Decoder::Decode_R() {
   rs->SetFromDecoder(type, V1, V2, Q1, Q2, -1);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   rob->SetFromDecoder(type, rd, 0, false);
+  rs->PassRS(rs1, rs2);
 }
 
 void Decoder::Decode_IA() {
@@ -195,6 +197,7 @@ void Decoder::Decode_IA() {
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rs->PassRS(-1, -1);
     return;
   }
   InstructionType type;
@@ -251,6 +254,7 @@ void Decoder::Decode_IA() {
     }
   }
   rs->SetFromDecoder(type, V1, imm, Q1, -1, -1);
+  rs->PassRS(rs1, -1);
   rob->SetFromDecoder(type, rd, 0, false);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
 }
@@ -265,6 +269,7 @@ void Decoder::Decode_IM() {
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rs->PassRS(-1, -1);
     return;
   }
   InstructionType type;
@@ -301,6 +306,7 @@ void Decoder::Decode_IM() {
     throw InvalidFunction();
   }
   rs->SetFromDecoder(type, V1, imm, Q1, -1, -1);
+  rs->PassRS(rs1, -1);
   rob->SetFromDecoder(type, rd, 0, false);
   lsb->SetFromDecoder(type, -1, -1, -1, false);
 }
@@ -332,6 +338,7 @@ void Decoder::Decode_IC() {
   } else {
     rob->SetFromDecoder(InstructionType::JALR, rd, current_pc + 4, true);
   }
+  rs->PassRS(rs1, -1);
   rs->SetFromDecoder(InstructionType::JALR, V1, imm, Q1, -1, -1);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   pc->SetPCWait();
@@ -372,6 +379,7 @@ void Decoder::Decode_S() {
     throw InvalidFunction();
   }
   rs->SetFromDecoder(type, V1, imm, Q1, -1, -1);
+  rs->PassRS(rs1, -1);
   rob->SetFromDecoder(type, rs2, -1, false);
   lsb->SetFromDecoder(type, -1, -1, -1, false);
 }
@@ -430,74 +438,17 @@ void Decoder::Decode_B() {
   default:
     throw InvalidFunction();
   }
-  
-  if (Q1 == -1 && Q2 == -1) {
-    if (type == BEQ) {
-      if (V1 == V2) {
-        pc->SetPCTask(current_pc + imm);
-        task.discard_this = true;
-        predictor->SubmitResult(current_pc, true);
-      } else {
-        predictor->SubmitResult(current_pc, false);
-      }
-    } else if (type == BGE) {
-      if (V1 >= V2) {
-        pc->SetPCTask(current_pc + imm);
-        task.discard_this = true;
-        predictor->SubmitResult(current_pc, true);
-      } else {
-        predictor->SubmitResult(current_pc, false);
-      }
-    } else if (type == BGEU) {
-      uint32_t UV1 = V1, UV2 = V2;
-      if (UV1 >= UV2) {
-        pc->SetPCTask(current_pc + imm);
-        task.discard_this = true;
-        predictor->SubmitResult(current_pc, true);
-      } else {
-        predictor->SubmitResult(current_pc, false);
-      }
-    } else if (type == BLT) {
-      if (V1 < V2) {
-        pc->SetPCTask(current_pc + imm);
-        task.discard_this = true;
-        predictor->SubmitResult(current_pc, true);
-      } else {
-        predictor->SubmitResult(current_pc, false);
-      }
-    } else if (type == BLTU) {
-      uint32_t UV1 = V1, UV2 = V2;
-      if (UV1 < UV2) {
-        pc->SetPCTask(current_pc + imm);
-        task.discard_this = true;
-        predictor->SubmitResult(current_pc, true);
-      } else {
-        predictor->SubmitResult(current_pc, false);
-      }
-    } else if (type == BNE) {
-      if (V1 != V2) {
-        pc->SetPCTask(current_pc + imm);
-        task.discard_this = true;
-        predictor->SubmitResult(current_pc, true);
-      } else {
-        predictor->SubmitResult(current_pc, false);
-      }
-    }
-    rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
-    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
-    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+  bool predict_jump = predictor->QueryJump(current_pc);
+  if (predict_jump) {
+    pc->SetPCTask(current_pc + imm);
+    task.discard_this = true;
+    rob->SetFromDecoder(type, current_pc + 4, current_pc << 1 | 1, false);
   } else {
-    bool predict_jump = predictor->QueryJump(current_pc);
-    if (predict_jump) {
-      pc->SetPCTask(current_pc + imm);
-      task.discard_this = true;
-      rob->SetFromDecoder(type, current_pc + 4, current_pc << 1 | 1, false);
-    } else {
-      rob->SetFromDecoder(type, current_pc + imm, current_pc << 1, false);
-    }
-    rs->SetFromDecoder(type, V1, V2, Q1, Q2, -1);
-    lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rob->SetFromDecoder(type, current_pc + imm, current_pc << 1, false);
   }
+  rs->SetFromDecoder(type, V1, V2, Q1, Q2, -1);
+  rs->PassRS(rs1, rs2);
+  lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
 }
 
 void Decoder::Decode_J() {
@@ -511,11 +462,13 @@ void Decoder::Decode_J() {
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rs->PassRS(-1, -1);
     return;
   }
   rob->SetFromDecoder(InstructionType::JAL, rd, current_pc + 4, true);
   rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+  rs->PassRS(-1, -1);
 }
 
 void Decoder::Decode_AUIPC() {
@@ -527,11 +480,13 @@ void Decoder::Decode_AUIPC() {
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     rs->SetFromDecoder(InstructionType::NONE, new_pc, 0, -1, -1, -1);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rs->PassRS(-1, -1);
     return;
   }
   rob->SetFromDecoder(InstructionType::AUIPC, rd, new_pc, true);
   rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+  rs->PassRS(-1, -1);
   return;
 }
 
@@ -543,11 +498,13 @@ void Decoder::Decode_LUI() {
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+    rs->PassRS(-1, -1);
     return;
   }
   rob->SetFromDecoder(InstructionType::LUI, rd, imm, false);
   rs->SetFromDecoder(InstructionType::LUI, 0, imm, -1, -1, -1);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
+  rs->PassRS(-1, -1);
   return;
 }
 
