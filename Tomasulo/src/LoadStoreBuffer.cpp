@@ -46,35 +46,20 @@ void LSB::PassROBTail(int32_t tail) {
 
 void LSB::Update() {
   predict_failed = task.predict_failed;
-  if (predict_failed) {
-    std::cerr << "LSB: get predict failed signal\n";
-  }
   task.predict_failed = false;
   type_from_decoder = task.type_from_decoder;
   address_from_decoder = task.address_from_decoder;
   cycle_from_decoder = task.cycle_from_decoder;
   committed_from_decoder = task.committed_from_decoder;
-  if (type_from_decoder != InstructionType::NONE) {
-    std::cerr << std::dec << "LSB: get from decoder:  type: " << Print(type_from_decoder)
-        << ", address: " << address_from_decoder << ", cycle: " << cycle_from_decoder
-        << ", committed: " << (committed_from_decoder ? "true" : "false") << '\n';
-  }
   type_from_alu = task.type_from_alu;
   result_from_alu = task.result_from_alu;
   rob_ind_from_alu = task.rob_ind_from_alu;
-  if (type_from_alu != InstructionType::NONE) {
-    std::cerr << std::dec << "LSB: get from alu:  type: " << Print(type_from_alu)
-        << ", result: " << result_from_alu << ", rob index: " << rob_ind_from_alu << '\n';
-  }
   store_rf_num = task.store_rf_num;
   for (int i = 0; i < store_rf_num; ++i) {
     store_from_rf[i] = task.store_from_rf[i];
   }
   loaded_rob_ind = task.loaded_rob_ind;
   loaded_value = task.loaded_value;
-  if (loaded_rob_ind != -1) {
-    std::cerr << std::dec << "LSB: get loaded data:  rob index: " << loaded_rob_ind << ", value: " << loaded_value << '\n';
-  }
   size = task.size;
   for (int i = 0; i < size; ++i) {
     rob_ind[i] = task.rob_ind[i];

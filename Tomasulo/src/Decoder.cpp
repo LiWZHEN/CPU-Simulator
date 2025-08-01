@@ -549,7 +549,6 @@ void Decoder::Decode_LUI() {
 }
 
 void Decoder::Run() {
-  std::cerr << "decoder get machine code: " << std::hex << machine_code << '\n';
   if (machine_code == 0 || predict_falied) {
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);

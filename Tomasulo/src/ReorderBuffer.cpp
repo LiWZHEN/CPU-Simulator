@@ -15,7 +15,6 @@ void ROB::Update() {
   predict_failed = task.predict_failed;
   task.predict_failed = false;
   if (predict_failed) {
-    std::cerr << "ROB: get predict failed signal\n";
     alu_compute_type = InstructionType::NONE;
     decoder_submit_type = InstructionType::NONE;
     load_rob_ind = -1;
@@ -23,22 +22,12 @@ void ROB::Update() {
     alu_compute_type = task.alu_compute_type;
     alu_given_value = task.alu_given_value;
     alu_given_dependence = task.alu_given_dependence;
-    if (alu_compute_type != InstructionType::NONE) {
-      std::cerr << "ROB: get value " << std::dec << alu_given_value << " of index " << alu_given_dependence << '\n';
-    }
     decoder_submit_type = task.decoder_submit_type;
     decoder_given_rd = task.decoder_given_rd;
     decoder_given_value = task.decoder_given_value;
     decoder_given_ready = task.decoder_given_ready;
-    if (decoder_submit_type != InstructionType::NONE) {
-      std::cerr << "ROB: get task: " << Print(decoder_submit_type)
-      << " rd: " << decoder_given_rd << ", value: " << decoder_given_value << ", is_ready: " << (decoder_given_ready ? "true" : "false") << '\n';
-    }
     load_rob_ind = task.load_rob_ind;
     load_value = task.load_value;
-    if (load_rob_ind != -1) {
-      std::cerr << "ROB: get loaded data:  ind: " << load_rob_ind << ", value: " << load_value << '\n';
-    }
   }
   task.alu_compute_type = InstructionType::NONE;
   task.decoder_submit_type = InstructionType::NONE;
@@ -131,8 +120,6 @@ void ROB::Run() {
   lsb->GetROBTable(rob_ind, value, num);
   while (rob_structure.rob_entries[rob_structure.head].is_ready) {
     ROBEntry first_entry = rob_structure.rob_entries[rob_structure.head];
-    std::cerr << std::dec << "ROB: commit instruction at index " << rob_structure.head << ":  reg: " << first_entry.rd << ", type: " << Print(first_entry.type)
-        << ", value: " << first_entry.value << '\n';
     if (first_entry.type == InstructionType::EXIT) {
       int32_t return_value = rf->GetData(10);
       std::cout << (return_value & 0x000000FF) << '\n';

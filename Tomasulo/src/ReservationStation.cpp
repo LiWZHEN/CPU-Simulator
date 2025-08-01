@@ -42,34 +42,19 @@ void RS::PassROBTail(int32_t tail) {
 
 void RS::Update() {
   predict_failed = task.predict_failed;
-  if (predict_failed) {
-    std::cerr << "RS: get predict failed signal\n";
-  }
   task.predict_failed = false;
   entry_from_decoder = task.entry_from_decoder;
-  if (entry_from_decoder.type != InstructionType::NONE) {
-    std::cerr << std::dec << "RS: get from decoder:  busy: " << (entry_from_decoder.busy ? "true" : "false") << ", type: " << Print(entry_from_decoder.type)
-        << ", V1: " << (entry_from_decoder.Q1 == -1 ? entry_from_decoder.V1 : 111111111111111) << ", V2: " << (entry_from_decoder.Q2 == -1 ? entry_from_decoder.V2 : 111111111111111) << '\n';
-  }
   type_from_alu = task.type_from_alu;
   value_from_alu = task.value_from_alu;
   rob_ind_from_alu = task.rob_ind_from_alu;
-  if (type_from_alu != InstructionType::NONE) {
-    std::cerr << std::dec << "RS: get from alu:  type: " << Print(type_from_alu)
-        << ", value: " << value_from_alu << ", index: " << rob_ind_from_alu << '\n';
-  }
   loaded_ind = task.loaded_ind;
   loaded_value = task.loaded_value;
-  if (loaded_ind != -1) {
-    std::cerr << std::dec << "RS: get loaded data:  ind: " << loaded_ind << ", value: " << loaded_value << '\n';
-  }
   rob_table_size = task.rob_table_size;
   for (int i = 0; i < rob_table_size; ++i) {
     rob_ind[i] = task.rob_ind[i];
     rob_value[i] = task.rob_value[i];
   }
   rob_tail = task.rob_tail;
-  std::cerr << std::dec << "RS: get rob tail: " << rob_tail << '\n';
   new_dependence_rd = task.new_dependence_rd;
   new_dependence_rob_ind = task.new_dependence_rob_ind;
   task.new_dependence_rd = -1;

@@ -8,7 +8,6 @@ void ProgramCounter::Connect(Memory *memory, Decoder *decoder) {
 
 void ProgramCounter::SetPCTask(int32_t to) {
   if (!task.predict_failed) {
-    std::cerr << "Set pc to " << to << '\n';
     task.force_jump = true;
     task.jump_to = to;
     task.wait_for_next = false;
@@ -63,7 +62,6 @@ void ProgramCounter::Run() {
     return;
   }
   int32_t machine_code = GetMachineCode();
-  std::cerr << "at: " << std::hex << pc << ", pc get machine code: " << machine_code << '\n';
   decoder->SetFromPC(machine_code);
   decoder->SetCurrentPC(pc);
   pc += 4;

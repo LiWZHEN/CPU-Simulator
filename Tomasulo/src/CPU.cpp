@@ -29,7 +29,6 @@ void CPU::Step() {
   if (clock > 100) {
     exit(0);
   }
-  std::cerr << "[" << std::dec << clock << "]\n";
 
   Update();
 
