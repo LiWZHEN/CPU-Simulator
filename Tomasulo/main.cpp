@@ -2,6 +2,7 @@
 #include "include/CPU.hpp"
 
 int main() {
+  freopen("info.txt", "w", stderr);
   CPU cpu;
   cpu.Initialize();
   while (true) {

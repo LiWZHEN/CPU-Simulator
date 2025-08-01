@@ -1,8 +1,10 @@
 #include "../include/LoadStoreBuffer.hpp"
 #include <iostream>
 
-void LSB::Connect(Memory *memory) {
+void LSB::Connect(Memory *memory, Decoder *decoder, ProgramCounter *pc) {
   this->memory = memory;
+  this->decoder = decoder;
+  this->pc = pc;
 }
 
 void LSB::SetFromDecoder(InstructionType type, int32_t address, int32_t cycle, int32_t rob_index, bool is_committed) {
@@ -134,4 +136,8 @@ void LSB::Run() {
       lsb_structure.head = (lsb_structure.head + 1) % 32;
     }
   }
+  if ((lsb_structure.tail + 32 - lsb_structure.head) % 32 >= 30) {
+    decoder->ROBFull();
+    pc->ROBFull();
+  } 
 }

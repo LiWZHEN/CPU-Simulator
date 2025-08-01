@@ -4,7 +4,7 @@ void CPU::Initialize() {
   memory.Connect(&lsb, &decoder, &rob, &rs);
   alu.Connect(&rob, &rs, &lsb, &pc);
   decoder.Connect(&rob, &rs, &lsb, &rf, &pc, &predictor);
-  lsb.Connect(&memory);
+  lsb.Connect(&memory, &decoder, &pc);
   rf.Connect(&decoder, &lsb);
   rob.Connect(&rs, &lsb, &decoder, &rf, &pc, &predictor, &alu);
   rs.Connect(&alu);
@@ -26,7 +26,7 @@ void CPU::Update() {
 
 void CPU::Step() {
   ++clock;
-  if (clock > 200000000) {
+  if (clock > 2000) {
     exit(0);
   }
 

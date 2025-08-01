@@ -151,7 +151,7 @@ void ROB::Run() {
   }
   rs->PassROBTail(rob_structure.tail);
   lsb->PassROBTail(rob_structure.tail);
-  if (rob_structure.size == 32) {
+  if (rob_structure.size > 30) {
     decoder->ROBFull();
     pc->ROBFull();
   }

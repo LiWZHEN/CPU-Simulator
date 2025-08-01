@@ -4,6 +4,7 @@
 #include "Classes.hpp"
 #include "Memory.hpp"
 #include "Decoder.hpp"
+#include "ProgramCounter.hpp"
 
 struct LSBEntry {
   InstructionType type = InstructionType::NONE;
@@ -36,6 +37,8 @@ struct LSBTask {
 
 class LSB {
   Memory *memory = nullptr;
+  Decoder *decoder = nullptr;
+  ProgramCounter *pc = nullptr;
 
   LSBTask task;
 
@@ -54,7 +57,7 @@ class LSB {
   LSBStructure lsb_structure;
 public:
   LSB() = default;
-  void Connect(Memory *memory);
+  void Connect(Memory *memory, Decoder *decoder, ProgramCounter *pc);
   void SetFromDecoder(InstructionType type, int32_t address, int32_t cycle, int32_t rob_index, bool is_committed);
   void SetFromALU(InstructionType type, int32_t result, int32_t rob_ind);
   void SetStoreFromRF(int32_t address, int32_t value, int32_t rob_ind);
