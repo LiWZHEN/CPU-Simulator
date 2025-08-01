@@ -20,7 +20,7 @@ void RegisterFile::Update() {
   task.dependence_from_decoder = -1;
 }
 
-void RegisterFile::SetNewDepenence(int32_t rd, int32_t dependence) {
+void RegisterFile::SetNewDependence(int32_t rd, int32_t dependence) {
   task.ind_from_decoder = rd;
   task.dependence_from_decoder = dependence;
 }
