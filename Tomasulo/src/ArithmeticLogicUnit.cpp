@@ -165,6 +165,11 @@ void ALU::Run() {
     rs->SetFromALU(InstructionType::NONE, 0, 0);
     lsb->SetFromALU(InstructionType::NONE, 0, 0);
     pc->SetPCTask(ans);
+  } else if (type == InstructionType::LUI || type == InstructionType::AUIPC) {
+    ans = v1 + v2;
+    rob->SetFromALU(InstructionType::LUI, ans, destination);
+    rs->SetFromALU(InstructionType::LUI, ans, destination);
+    lsb->SetFromALU(InstructionType::LUI, ans, destination);
   } else {
     throw "Unexpected operation!";
   }
