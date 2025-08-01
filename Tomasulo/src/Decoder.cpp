@@ -30,10 +30,6 @@ void Decoder::CommitMessageFromROB(int32_t rob_ind, int32_t value) {
   task.commit_message[task.commit_message_len++] = {rob_ind, value};
 }
 
-void Decoder::PassRobTail(int32_t tail) {
-  task.rob_tail = tail;
-}
-
 void Decoder::PassRF(int32_t rf_data[], int32_t rf_dependence[]) {
   for (int i = 0; i < 32; ++i) {
     task.rf_data[i] = rf_data[i];
@@ -65,7 +61,6 @@ void Decoder::Update() {
   }
   machine_code = task.machine_code;
   current_pc = task.current_pc;
-  rob_tail = task.rob_tail;
   for (int i = 0; i < 32; ++i) {
     rf_data[i] = task.rf_data[i];
     rf_dependence[i] = task.rf_dependence[i];
@@ -118,7 +113,6 @@ void Decoder::Decode_R() {
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
-    rf->SetNewDepenence(0, -1);
     return;
   }
   InstructionType type;
@@ -187,8 +181,7 @@ void Decoder::Decode_R() {
   default:
     throw InvalidFunction();
   }
-  rs->SetFromDecoder(type, V1, V2, Q1, Q2, rob_tail);
-  rf->SetNewDepenence(rd, rob_tail);
+  rs->SetFromDecoder(type, V1, V2, Q1, Q2, -1);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   rob->SetFromDecoder(type, rd, 0, false);
 }
@@ -202,7 +195,6 @@ void Decoder::Decode_IA() {
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
-    rf->SetNewDepenence(0, -1);
     return;
   }
   InstructionType type;
@@ -258,8 +250,7 @@ void Decoder::Decode_IA() {
       throw InvalidFunction();
     }
   }
-  rf->SetNewDepenence(rd, rob_tail);
-  rs->SetFromDecoder(type, V1, imm, Q1, -1, rob_tail);
+  rs->SetFromDecoder(type, V1, imm, Q1, -1, -1);
   rob->SetFromDecoder(type, rd, 0, false);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
 }
@@ -274,7 +265,6 @@ void Decoder::Decode_IM() {
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
-    rf->SetNewDepenence(0, -1);
     return;
   }
   InstructionType type;
@@ -310,10 +300,9 @@ void Decoder::Decode_IM() {
   default:
     throw InvalidFunction();
   }
-  rf->SetNewDepenence(rd, rob_tail);
-  rs->SetFromDecoder(type, V1, imm, Q1, -1, rob_tail);
+  rs->SetFromDecoder(type, V1, imm, Q1, -1, -1);
   rob->SetFromDecoder(type, rd, 0, false);
-  lsb->SetFromDecoder(type, -1, -1, rob_tail, false);
+  lsb->SetFromDecoder(type, -1, -1, -1, false);
 }
 
 void Decoder::Decode_IC() {
@@ -339,13 +328,11 @@ void Decoder::Decode_IC() {
     }
   }
   if (rd == 0) {
-    rf->SetNewDepenence(0, -1);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);    
   } else {
-    rf->SetNewDepenence(rd, rob_tail);
     rob->SetFromDecoder(InstructionType::JALR, rd, current_pc + 4, true);
   }
-  rs->SetFromDecoder(InstructionType::JALR, V1, imm, Q1, -1, rob_tail);
+  rs->SetFromDecoder(InstructionType::JALR, V1, imm, Q1, -1, -1);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   pc->SetPCWait();
   task.discard_this = true;
@@ -384,10 +371,9 @@ void Decoder::Decode_S() {
   default:
     throw InvalidFunction();
   }
-  rf->SetNewDepenence(0, -1);
-  rs->SetFromDecoder(type, V1, imm, Q1, -1, rob_tail);
+  rs->SetFromDecoder(type, V1, imm, Q1, -1, -1);
   rob->SetFromDecoder(type, rs2, -1, false);
-  lsb->SetFromDecoder(type, -1, -1, rob_tail, false);
+  lsb->SetFromDecoder(type, -1, -1, -1, false);
 }
 
 void Decoder::Decode_B() {
@@ -497,7 +483,6 @@ void Decoder::Decode_B() {
         predictor->SubmitResult(current_pc, false);
       }
     }
-    rf->SetNewDepenence(0, -1);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
@@ -510,8 +495,7 @@ void Decoder::Decode_B() {
     } else {
       rob->SetFromDecoder(type, current_pc + imm, current_pc << 1, false);
     }
-    rf->SetNewDepenence(0, -1);
-    rs->SetFromDecoder(type, V1, V2, Q1, Q2, rob_tail);
+    rs->SetFromDecoder(type, V1, V2, Q1, Q2, -1);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   }
 }
@@ -524,13 +508,11 @@ void Decoder::Decode_J() {
   pc->SetPCTask(current_pc + imm);
   task.discard_this = true;
   if (rd == 0) {
-    rf->SetNewDepenence(0, -1);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
     return;
   }
-  rf->SetNewDepenence(rd, rob_tail);
   rob->SetFromDecoder(InstructionType::JAL, rd, current_pc + 4, true);
   rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
@@ -542,13 +524,11 @@ void Decoder::Decode_AUIPC() {
       imm = code & 0b11111111111111111111000000000000;
   const int32_t new_pc = current_pc + imm;
   if (rd == 0) {
-    rf->SetNewDepenence(0, -1);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
-    rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+    rs->SetFromDecoder(InstructionType::NONE, new_pc, 0, -1, -1, -1);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
     return;
   }
-  rf->SetNewDepenence(rd, rob_tail);
   rob->SetFromDecoder(InstructionType::AUIPC, rd, new_pc, true);
   rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
@@ -560,15 +540,13 @@ void Decoder::Decode_LUI() {
   const int32_t rd = (code >> 7) & 0b11111,
       imm = code & 0b11111111111111111111000000000000;
   if (rd == 0) {
-    rf->SetNewDepenence(0, -1);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
     return;
   }
-  rf->SetNewDepenence(rd, rob_tail);
-  rob->SetFromDecoder(InstructionType::LUI, rd, imm, true);
-  rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+  rob->SetFromDecoder(InstructionType::LUI, rd, imm, false);
+  rs->SetFromDecoder(InstructionType::LUI, 0, imm, -1, -1, -1);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   return;
 }
@@ -576,14 +554,12 @@ void Decoder::Decode_LUI() {
 void Decoder::Run() {
   std::cerr << "decoder get machine code: " << std::hex << machine_code << '\n';
   if (machine_code == 0 || predict_falied) {
-    rf->SetNewDepenence(0, -1);
     rob->SetFromDecoder(InstructionType::NONE, 0, 0, false);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
     return;
   }
   if (machine_code == 0x0ff00513) {
-    rf->SetNewDepenence(0, -1);
     rob->SetFromDecoder(InstructionType::EXIT, 0, 0, true);
     rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
     lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
