@@ -19,7 +19,6 @@ struct DecoderTask {
   int32_t machine_code;
   bool predict_failed = false;
   bool rob_is_full = false;
-  int32_t rob_tail = 0;
   int32_t rf_data[32];
   int32_t rf_dependence[32];
   CommitMessage commit_message[32];
@@ -39,7 +38,6 @@ class Decoder {
   int32_t machine_code = 0;
   bool predict_falied = false;
   bool rob_is_full = false;
-  int32_t rob_tail = 0;
   int32_t rf_data[32];
   int32_t rf_dependence[32];
   CommitMessage commit_message[32];
@@ -65,7 +63,6 @@ public:
   void SetCurrentPC(int32_t current_pc);
   void PredictFailed();
   void CommitMessageFromROB(int32_t rob_ind, int32_t value);
-  void PassRobTail(int32_t tail);
   void PassRF(int32_t rf_data[], int32_t rf_dependence[]);
   void ROBFull();
   void Run();
