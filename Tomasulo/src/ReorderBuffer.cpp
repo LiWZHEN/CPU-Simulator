@@ -1,5 +1,6 @@
 #include "../include/ReorderBuffer.hpp"
 #include <iostream>
+#include <iomanip>
 
 void ROB::Connect(RS *rs, LSB *lsb, Decoder *decoder, RegisterFile *rf, ProgramCounter *pc, Predictor *predictor, ALU *alu) {
   this->rs = rs;
@@ -139,6 +140,7 @@ void ROB::Run() {
         rf->PredictFailed();
         alu->SetPredictFault();
         pc->PredictFailed(first_entry.rd);
+        return;
       }
     } else {
       rf->SetFromROB(first_entry.type, first_entry.rd, first_entry.value, rob_structure.head);
@@ -155,4 +157,14 @@ void ROB::Run() {
     decoder->ROBFull();
     pc->ROBFull();
   }
+}
+
+void ROB::Print() {
+  std::cerr << "ROB:  size: " << std::dec << (rob_structure.tail - rob_structure.head + 32) % 32 << "\n";
+  std::cerr << '|' << std::setw(3) << "ind" << '|' << std::setw(8) << "type" << '|' << std::setw(8) << "rd" << '|' << std::setw(8) << "value" << '|' << std::setw(6) << "ready" << "|\n";
+  for (int i = rob_structure.head; i != rob_structure.tail; ++i, i %= 32) {
+    std::cerr << '|' << std::setw(3) << i << '|' << std::setw(8) << PrintType(rob_structure.rob_entries[i].type) << '|' << std::setw(8) << rob_structure.rob_entries[i].rd
+        << '|' << std::setw(8) << rob_structure.rob_entries[i].value << '|' << std::setw(6) << (rob_structure.rob_entries[i].is_ready ? "Yes" : "No") << "|\n";
+  }
+  std::cerr << '\n';
 }
