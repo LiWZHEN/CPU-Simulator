@@ -119,7 +119,7 @@ void ROB::Run() {
   }
   rs->GetROBTable(rob_ind, value, num);
   lsb->GetROBTable(rob_ind, value, num);
-  while (rob_structure.rob_entries[rob_structure.head].is_ready) {
+  while (rob_structure.head != rob_structure.tail && rob_structure.rob_entries[rob_structure.head].is_ready) {
     ROBEntry first_entry = rob_structure.rob_entries[rob_structure.head];
     if (first_entry.type == InstructionType::EXIT) {
       int32_t return_value = rf->GetData(10);

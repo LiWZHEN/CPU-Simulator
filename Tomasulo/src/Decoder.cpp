@@ -46,6 +46,7 @@ void Decoder::Update() {
     predict_falied = true;
     task.predict_failed = false;
     task.commit_message_len = 0;
+    task.discard_this = false;
     return;
   }
   if (task.discard_this) {
@@ -438,7 +439,7 @@ void Decoder::Decode_B() {
   }
   Q2 = rf_dependence[rs2];
   if (Q2 == -1) {
-    V2 = rf_data[rs1];
+    V2 = rf_data[rs2];
   } else {
     for (int i = 0; i < commit_message_len; ++i) {
       if (commit_message[i].rob_ind == Q2) {
