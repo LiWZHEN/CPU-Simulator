@@ -1,5 +1,6 @@
 #include "../include/RegisterFile.hpp"
 #include <iostream>
+#include <iomanip>
 
 void RegisterFile::Connect(Decoder *decoder, LSB *lsb) {
   this->decoder = decoder;
@@ -59,4 +60,59 @@ void RegisterFile::SetFromROB(InstructionType type, int32_t rd, int32_t value, i
 
 int32_t RegisterFile::GetData(const int32_t ind) const {
   return rf[ind];
+}
+
+void RegisterFile::Print() {
+  std::cerr << "RF:\n|   index    |";
+  for (int i = 0; i < 8; ++i) {
+    std::cerr << std::dec << std::setw(8) << i << '|';
+  }
+  std::cerr << "\n|   value    |";
+  for (int i = 0; i < 8; ++i) {
+    std::cerr << std::hex << std::setw(8) << rf[i] << '|';
+  }
+  std::cerr << "\n| dependence |";
+  for (int i = 0; i < 8; ++i) {
+    std::cerr << std::dec << std::setw(8) << dependence[i] << '|';
+  }
+  std::cerr << "\n\n";
+  std::cerr << "|   index    |";
+  for (int i = 8; i < 16; ++i) {
+    std::cerr << std::dec << std::setw(8) << i << '|';
+  }
+  std::cerr << "\n|   value    |";
+  for (int i = 8; i < 16; ++i) {
+    std::cerr << std::hex << std::setw(8) << rf[i] << '|';
+  }
+  std::cerr << "\n| dependence |";
+  for (int i = 8; i < 16; ++i) {
+    std::cerr << std::dec << std::setw(8) << dependence[i] << '|';
+  }
+  std::cerr << "\n\n";
+  std::cerr << "|   index    |";
+  for (int i = 16; i < 24; ++i) {
+    std::cerr << std::dec << std::setw(8) << i << '|';
+  }
+  std::cerr << "\n|   value    |";
+  for (int i = 16; i < 24; ++i) {
+    std::cerr << std::hex << std::setw(8) << rf[i] << '|';
+  }
+  std::cerr << "\n| dependence |";
+  for (int i = 16; i < 24; ++i) {
+    std::cerr << std::dec << std::setw(8) << dependence[i] << '|';
+  }
+  std::cerr << "\n\n";
+  std::cerr << "|   index    |";
+  for (int i = 24; i < 32; ++i) {
+    std::cerr << std::dec << std::setw(8) << i << '|';
+  }
+  std::cerr << "\n|   value    |";
+  for (int i = 24; i < 32; ++i) {
+    std::cerr << std::hex << std::setw(8) << rf[i] << '|';
+  }
+  std::cerr << "\n| dependence |";
+  for (int i = 24; i < 32; ++i) {
+    std::cerr << std::dec << std::setw(8) << dependence[i] << '|';
+  }
+  std::cerr << "\n\n";
 }

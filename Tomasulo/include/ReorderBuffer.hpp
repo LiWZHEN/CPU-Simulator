@@ -67,5 +67,6 @@ public:
   void SetFromDecoder(InstructionType instruction_type, int32_t rd, int32_t value, bool is_ready);
   void GetLoadedData(int32_t rob_ind, int32_t value);
   void Run();
+  void Print();
 };
 #endif

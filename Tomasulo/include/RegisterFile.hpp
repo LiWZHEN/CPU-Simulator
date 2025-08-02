@@ -41,5 +41,6 @@ public:
   void PredictFailed();
   void Update();
   void Run();
+  void Print();
 };
 #endif

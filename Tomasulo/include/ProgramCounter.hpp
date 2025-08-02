@@ -36,5 +36,6 @@ public:
   void ROBFull();
   void Update();
   void Run();
+  void Print();
 };
 #endif

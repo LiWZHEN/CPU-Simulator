@@ -1,6 +1,6 @@
 #include "../include/Classes.hpp"
 
-std::string Print(InstructionType type) {
+std::string PrintType(InstructionType type) {
   switch (type) {
   case 0:
     return "None";

@@ -26,7 +26,7 @@ void CPU::Update() {
 
 void CPU::Step() {
   ++clock;
-  if (clock > 2000) {
+  if (clock > 1000) {
     exit(0);
   }
 
@@ -40,4 +40,16 @@ void CPU::Step() {
   rob.Run();
   rs.Run();
   pc.Run();
+}
+
+void CPU::Print() {
+  pc.Print();
+  rf.Print();
+  rob.Print();
+  lsb.Print();
+  rs.Print();
+}
+
+int32_t CPU::GetClock() {
+  return clock;
 }

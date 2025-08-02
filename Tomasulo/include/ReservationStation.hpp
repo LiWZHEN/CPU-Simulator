@@ -59,5 +59,6 @@ public:
   void Run();
   void SetNewDependence(int32_t rd, int32_t dependence);
   void PassRS(int32_t rs1, int32_t rs2);
+  void Print();
 };
 #endif

@@ -31,6 +31,8 @@ public:
   void Initialize();
   void Update();
   void Step();
+  void Print();
+  int32_t GetClock();
 };
 
 #endif

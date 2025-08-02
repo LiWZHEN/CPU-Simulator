@@ -1,4 +1,5 @@
 #include "../include/Run.hpp"
+#include <iomanip>
 
 void Interpreter::Add(const int32_t rd, const int32_t rs1, const int32_t rs2) {
   const int32_t data1 = reg_file.GetData(rs1);
@@ -282,7 +283,7 @@ void Interpreter::Run(Memory &memory) {
       return;
     }
     std::string command = decoder.Decode(instruction);
-    std::cerr << std::hex << current_pc << ": " << instruction << " " << command << '\n';
+    std::cerr << std::hex << std::setw(6) << current_pc << " : " << std::setw(10) << instruction << " " << std::setw(36) << command << '\n';
     if (command.substr(0, 4) == "add ") {
       const int32_t rd = StringToInt(command.substr(4, 8));
       const int32_t rs1 = StringToInt(command.substr(13, 8));
@@ -480,9 +481,6 @@ void Interpreter::Run(Memory &memory) {
       Lui(rd, imm);
     } else {
       throw InvalidInstruction();
-    }
-    for (int i = 0; i < 32; ++i) {
-      std::cerr << std::hex << i << ": " << reg_file.GetData(i) << '\n';
     }
     pc.NextPC();
   }

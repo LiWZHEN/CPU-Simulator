@@ -52,17 +52,27 @@ void ProgramCounter::Update() {
 
 void ProgramCounter::Run() {
   if (predict_failed || force_jump) {
+    if (predict_failed) {
+      std::cerr << "Predict failed last cycle!!!!!!!\n";
+    }
     pc = jump_to;
   }
   if (wait_for_next) {
+    std::cerr << "Waiting for next pos......\n";
     decoder->SetFromPC(0);
     return;
   }
   if (rob_is_full) {
+    std::cerr << "ROB/LSB is almost full!!! Hold on!!!\n";
     return;
   }
   int32_t machine_code = GetMachineCode();
+  std::cerr << "Get code pc: " << std::hex << pc << '\n';
   decoder->SetFromPC(machine_code);
   decoder->SetCurrentPC(pc);
   pc += 4;
+}
+
+void ProgramCounter::Print() {
+  std::cerr << "Current pc: " << std::hex << pc << '\n';
 }

@@ -67,5 +67,6 @@ public:
   void PassROBTail(int32_t tail);
   void Update();
   void Run();
+  void Print();
 };
 #endif

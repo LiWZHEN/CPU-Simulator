@@ -1,5 +1,6 @@
 #include "../include/LoadStoreBuffer.hpp"
 #include <iostream>
+#include <iomanip>
 
 void LSB::Connect(Memory *memory, Decoder *decoder, ProgramCounter *pc) {
   this->memory = memory;
@@ -86,7 +87,9 @@ void LSB::Run() {
     task.loaded_rob_ind = -1;
     task.rob_tail = 0;
     for (int i = lsb_structure.head; i != lsb_structure.tail; ++i, i %= 32) {
-      if (!lsb_structure.lsb_entries[i].committed) {
+      if (!lsb_structure.lsb_entries[i].committed || lsb_structure.lsb_entries[i].type == InstructionType::LB
+          || lsb_structure.lsb_entries[i].type == InstructionType::LBU || lsb_structure.lsb_entries[i].type == InstructionType::LH
+          || lsb_structure.lsb_entries[i].type == InstructionType::LHU || lsb_structure.lsb_entries[i].type == InstructionType::LW) {
         lsb_structure.tail = i;
         break;
       }
@@ -140,4 +143,15 @@ void LSB::Run() {
     decoder->ROBFull();
     pc->ROBFull();
   } 
+}
+
+void LSB::Print() {
+  std::cerr << "LSB:  size: " << std::dec << (lsb_structure.tail - lsb_structure.head + 32) % 32 << "\n";
+  std::cerr << '|' << std::setw(8) << "type" << '|' << std::setw(8) << "address" << '|' << std::setw(8) << "rob_ind" << '|' << std::setw(6) << "ready" << '|' << std::setw(8) << "cycle" << "|\n";
+  for (int i = lsb_structure.head; i != lsb_structure.tail; ++i, i %= 32) {
+    std::cerr << '|' << std::setw(8) << PrintType(lsb_structure.lsb_entries[i].type) << '|' << std::setw(8) << lsb_structure.lsb_entries[i].address
+        << '|' << std::setw(8) << lsb_structure.lsb_entries[i].rob_ind << '|' << std::setw(6) << (lsb_structure.lsb_entries[i].committed ? "Yes" : "No")
+        << '|' << std::setw(8) << lsb_structure.lsb_entries[i].cycle << "|\n";
+  }
+  std::cerr << '\n';
 }

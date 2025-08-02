@@ -1,5 +1,6 @@
 #include "../include/ReservationStation.hpp"
 #include <iostream>
+#include <iomanip>
 
 void RS::Connect(ALU *alu) {
   this->alu = alu;
@@ -168,4 +169,19 @@ void RS::SetNewDependence(int32_t rd, int32_t dependence) {
 void RS::PassRS(int32_t rs1, int32_t rs2) {
   task.rs1 = rs1;
   task.rs2 = rs2;
+}
+
+void RS::Print() {
+  std::cerr << "RS:\n";
+  std::cerr << '|' << std::setw(8) << "type" << '|' << std::setw(8) << "target" << '|' << std::setw(8) << "V1"
+      << '|' << std::setw(8) << "V2" << '|' << std::setw(4) << "Q1" << '|' << std::setw(4) << "Q2" << "|\n";
+  for (int i = 0; i < 32; ++i) {
+    if (!rs_entries[i].busy) {
+      continue;
+    }
+    std::cerr << '|' << std::setw(8) << PrintType(rs_entries[i].type) << '|' << std::setw(8) << rs_entries[i].destination
+        << '|' << std::setw(8) << rs_entries[i].V1 << '|' << std::setw(8) << rs_entries[i].V2 << '|' << std::setw(4) << rs_entries[i].Q1
+        << '|' << std::setw(4) << rs_entries[i].Q2 << "|\n";
+  }
+  std::cerr << '\n';
 }
