@@ -130,7 +130,7 @@ void ROB::Run() {
       if (commit_num != 0) {
         break;
       }
-      std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
+      // std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
       int32_t return_value = rf->GetData(10);
       std::cout << (return_value & 0x000000FF) << '\n';
       exit(0);
@@ -139,13 +139,13 @@ void ROB::Run() {
         || first_entry.type == InstructionType::BGEU || first_entry.type == InstructionType::BLT
         || first_entry.type == InstructionType::BLTU || first_entry.type == InstructionType::BNE) {
       if ((first_entry.value & 1) == 1) {
-        std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
+        // std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
         predictor->SubmitResult(first_entry.value >> 2, (first_entry.value & 3) == 0 || (first_entry.value & 3) == 3);
       } else {
         if (commit_num != 0) {
           break;
         }
-        std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
+        // std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
         predictor->SubmitResult(first_entry.value >> 2, (first_entry.value & 3) == 0 || (first_entry.value & 3) == 3);
         this->SetPredictFault();
         rs->PredictFailed();
@@ -157,7 +157,7 @@ void ROB::Run() {
         return;
       }
     } else {
-      std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
+      // std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
       rf->SetFromROB(first_entry.type, first_entry.rd, first_entry.value, rob_structure.head);
       decoder->CommitMessageFromROB(rob_structure.head, first_entry.value);
     }
