@@ -3,7 +3,7 @@
 
 int main() {
   freopen("info.txt", "w", stderr);
-  freopen("../testcases/array_test1.data", "r", stdin);
+  freopen("../testcases/array_test2.data", "r", stdin);
   CPU cpu;
   cpu.Initialize();
   while (true) {
