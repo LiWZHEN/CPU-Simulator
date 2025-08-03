@@ -569,8 +569,8 @@ void Decoder::Decode_J() {
     rs->PassRS(-1, -1);
     return;
   }
-  rob->SetFromDecoder(InstructionType::JAL, rd, current_pc + 4, true);
-  rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+  rob->SetFromDecoder(InstructionType::JAL, rd, current_pc + 4, false);
+  rs->SetFromDecoder(InstructionType::JAL, current_pc + 4, 0, -1, -1, 0);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   rs->PassRS(-1, -1);
 }
@@ -587,8 +587,8 @@ void Decoder::Decode_AUIPC() {
     rs->PassRS(-1, -1);
     return;
   }
-  rob->SetFromDecoder(InstructionType::AUIPC, rd, new_pc, true);
-  rs->SetFromDecoder(InstructionType::NONE, 0, 0, 0, 0, 0);
+  rob->SetFromDecoder(InstructionType::AUIPC, rd, new_pc, false);
+  rs->SetFromDecoder(InstructionType::AUIPC, new_pc, 0, -1, -1, 0);
   lsb->SetFromDecoder(InstructionType::NONE, 0, 0, 0, false);
   rs->PassRS(-1, -1);
   return;
