@@ -150,7 +150,7 @@ void Decoder::Decode_R() {
   }
   Q2 = rf_dependence[rs2];
   if (Q2 == -1) {
-    V2 = rf_data[rs1];
+    V2 = rf_data[rs2];
   } else {
     for (int i = 0; i < rob_table_size; ++i) {
       if (rob_ind[i] == Q2) {
@@ -441,31 +441,9 @@ void Decoder::Decode_S() {
     //   }
     // }
   }
-  Q2 = rf_dependence[rs2];
-  if (Q2 == -1) {
-    V2 = rf_data[rs2];
-  } else {
-    for (int i = 0; i < rob_table_size; ++i) {
-      if (rob_ind[i] == Q2) {
-        Q2 = -1;
-        V2 = rob_value[i];
-        break;
-      }
-    }
-    // for (int i = 0; i < commit_message_len; ++i) {
-    //   if (commit_message[i].rob_ind == Q2) {
-    //     Q2 = -1;
-    //     V2 = commit_message[i].value;
-    //     break;
-    //   }
-    // }
-  }
   if (new_dependence_rd != -1) {
     if (rs1 == new_dependence_rd) {
       Q1 = new_dependence_rob_ind;
-    }
-    if (rs2 == new_dependence_rd) {
-      Q2 = new_dependence_rob_ind;
     }
   }
   switch (funct3) {
@@ -482,7 +460,7 @@ void Decoder::Decode_S() {
     throw InvalidFunction();
   }
   rs->SetFromDecoder(type, V1, imm, Q1, -1, -1);
-  rs->PassRS(rs1, rs2);
+  rs->PassRS(rs1, -1);
   rob->SetFromDecoder(type, rs2, -1, false);
   lsb->SetFromDecoder(type, -1, -1, -1, false);
 }
