@@ -2,14 +2,14 @@
 #include "include/CPU.hpp"
 
 int main() {
-  freopen("info.txt", "w", stderr);
-  freopen("../testcases/array_test2.data", "r", stdin);
+  // freopen("info.txt", "w", stderr);
+  // freopen("../testcases/array_test2.data", "r", stdin);
   CPU cpu;
   cpu.Initialize();
   while (true) {
-    std::cerr << "-------------------------------[" << cpu.GetClock() << "]-------------------------------------\n";
+    // std::cerr << "-------------------------------[" << cpu.GetClock() << "]-------------------------------------\n";
     cpu.Step();
-    cpu.Print();
+    // cpu.Print();
   }
   return 0;
 }
