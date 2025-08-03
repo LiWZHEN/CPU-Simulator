@@ -57,7 +57,8 @@ void Decoder::Update() {
   task.rob_is_full = false;
   predict_falied = false;
   if (rob_is_full) {
-    task.commit_message_len = 0; 
+    task.commit_message_len = 0;
+    machine_code = 0;
     return;
   }
   new_dependence_rd = task.new_dependence_rd;
