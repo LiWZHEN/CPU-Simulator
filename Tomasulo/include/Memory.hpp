@@ -3,9 +3,7 @@
 
 #include "Classes.hpp"
 #include <unordered_map>
-#include <queue>
 #include <cstdint>
-#include <string>
 
 #include "LoadStoreBuffer.hpp"
 #include "Decoder.hpp"
