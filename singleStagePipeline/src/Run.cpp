@@ -285,7 +285,8 @@ void Interpreter::Run(Memory &memory) {
       return;
     }
     std::string command = decoder.Decode(instruction);
-    if (command.substr(0, 5) != "jalr " || StringToInt(command.substr(5, 8)) != 0) {
+    if (!(command.substr(0, 5) == "jalr " && StringToInt(command.substr(5, 8)) == 0)
+        && !(command.substr(0, 4) == "jal " && StringToInt(command.substr(4, 8)) == 0)) {
       std::cerr << std::dec << '[' << ind++ << "] " << std::hex << std::setw(6) << current_pc << " : " << std::setw(10) << instruction << " " << std::setw(36) << command << '\n';
     }
     if (command.substr(0, 4) == "add ") {
