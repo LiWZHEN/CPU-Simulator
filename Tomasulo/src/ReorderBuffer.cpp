@@ -2,6 +2,8 @@
 #include <iostream>
 #include <iomanip>
 
+int ind = 0;
+
 void ROB::Connect(RS *rs, LSB *lsb, Decoder *decoder, RegisterFile *rf, ProgramCounter *pc, Predictor *predictor, ALU *alu) {
   this->rs = rs;
   this->lsb = lsb;
@@ -84,7 +86,8 @@ void ROB::Run() {
     if (decoder_submit_type != InstructionType::BEQ && decoder_submit_type != InstructionType::BGE
         && decoder_submit_type != InstructionType::BGEU && decoder_submit_type != InstructionType::BLT
         && decoder_submit_type != InstructionType::BLTU && decoder_submit_type != InstructionType::BNE
-        && decoder_given_rd != 0) {
+        && decoder_submit_type != InstructionType::SB && decoder_submit_type != InstructionType::SH
+        && decoder_submit_type != InstructionType::SW && decoder_given_rd != 0) {
       rf->SetNewDependence(decoder_given_rd, rob_structure.tail);
       rs->SetNewDependence(decoder_given_rd, rob_structure.tail);
       decoder->SetNewDependence(decoder_given_rd, rob_structure.tail);
@@ -119,8 +122,10 @@ void ROB::Run() {
   }
   rs->GetROBTable(rob_ind, value, num);
   lsb->GetROBTable(rob_ind, value, num);
+  decoder->GetROBTable(rob_ind, value, num);
   while (rob_structure.head != rob_structure.tail && rob_structure.rob_entries[rob_structure.head].is_ready) {
     ROBEntry first_entry = rob_structure.rob_entries[rob_structure.head];
+    std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
     if (first_entry.type == InstructionType::EXIT) {
       int32_t return_value = rf->GetData(10);
       std::cout << (return_value & 0x000000FF) << '\n';

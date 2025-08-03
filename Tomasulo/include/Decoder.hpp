@@ -27,6 +27,7 @@ struct DecoderTask {
   bool discard_this = false;
   int32_t new_dependence_rd = -1;
   int32_t new_dependence_rob_ind = -1;
+  int32_t rob_ind[32], rob_value[32], rob_table_size = 0;
 };
 
 class Decoder {
@@ -47,6 +48,7 @@ class Decoder {
   int32_t current_pc = 0;
   int32_t new_dependence_rd = -1;
   int32_t new_dependence_rob_ind = -1;
+  int32_t rob_ind[32], rob_value[32], rob_table_size = 0;
 
   DecoderTask task;
 
@@ -71,6 +73,7 @@ public:
   void ROBFull();
   void Run();
   void SetNewDependence(int32_t rd, int32_t dependence);
+  void GetROBTable(int32_t rob_index[], int32_t val[], int32_t size);
 };
 
 std::string IntToString(uint32_t x);

@@ -148,6 +148,7 @@ void RS::Run() {
     }
   }
 
+  this->Print();
   for (int i = 0; i < 32; ++i) {
     if (!rs_entries[i].busy) {
       continue;

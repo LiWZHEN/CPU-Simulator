@@ -1,6 +1,8 @@
 #include "../include/Run.hpp"
 #include <iomanip>
 
+int ind = 0;
+
 void Interpreter::Add(const int32_t rd, const int32_t rs1, const int32_t rs2) {
   const int32_t data1 = reg_file.GetData(rs1);
   const int32_t data2 = reg_file.GetData(rs2);
@@ -283,7 +285,9 @@ void Interpreter::Run(Memory &memory) {
       return;
     }
     std::string command = decoder.Decode(instruction);
-    std::cerr << std::hex << std::setw(6) << current_pc << " : " << std::setw(10) << instruction << " " << std::setw(36) << command << '\n';
+    if (command.substr(0, 5) != "jalr " || StringToInt(command.substr(5, 8)) != 0) {
+      std::cerr << std::dec << '[' << ind++ << "] " << std::hex << std::setw(6) << current_pc << " : " << std::setw(10) << instruction << " " << std::setw(36) << command << '\n';
+    }
     if (command.substr(0, 4) == "add ") {
       const int32_t rd = StringToInt(command.substr(4, 8));
       const int32_t rs1 = StringToInt(command.substr(13, 8));
@@ -409,6 +413,7 @@ void Interpreter::Run(Memory &memory) {
       const int32_t rs1 = StringToInt(command.substr(14, 8));
       const int32_t imm = StringToInt(command.substr(23, 8));
       Jalr(rd, rs1, imm);
+      reg_file.Print();
       continue;
     } else if (command == "ebreak") {
       Ebreak();
@@ -434,46 +439,54 @@ void Interpreter::Run(Memory &memory) {
       const int32_t rs2 = StringToInt(command.substr(13, 8));
       const int32_t imm = StringToInt(command.substr(22, 8));
       Beq(rs1, rs2, imm);
+      reg_file.Print();
       continue;
     } else if (command.substr(0, 4) == "bge ") {
       const int32_t rs1 = StringToInt(command.substr(4, 8));
       const int32_t rs2 = StringToInt(command.substr(13, 8));
       const int32_t imm = StringToInt(command.substr(22, 8));
       Bge(rs1, rs2, imm);
+      reg_file.Print();
       continue;
     } else if (command.substr(0, 5) == "bgeu ") {
       const int32_t rs1 = StringToInt(command.substr(5, 8));
       const int32_t rs2 = StringToInt(command.substr(14, 8));
       const int32_t imm = StringToInt(command.substr(23, 8));
       Bgeu(rs1, rs2, imm);
+      reg_file.Print();
       continue;
     } else if (command.substr(0, 4) == "blt ") {
       const int32_t rs1 = StringToInt(command.substr(4, 8));
       const int32_t rs2 = StringToInt(command.substr(13, 8));
       const int32_t imm = StringToInt(command.substr(22, 8));
       Blt(rs1, rs2, imm);
+      reg_file.Print();
       continue;
     } else if (command.substr(0, 5) == "bltu ") {
       const int32_t rs1 = StringToInt(command.substr(5, 8));
       const int32_t rs2 = StringToInt(command.substr(14, 8));
       const int32_t imm = StringToInt(command.substr(23, 8));
       Bltu(rs1, rs2, imm);
+      reg_file.Print();
       continue;
     } else if (command.substr(0, 4) == "bne ") {
       const int32_t rs1 = StringToInt(command.substr(4, 8));
       const int32_t rs2 = StringToInt(command.substr(13, 8));
       const int32_t imm = StringToInt(command.substr(22, 8));
       Bne(rs1, rs2, imm);
+      reg_file.Print();
       continue;
     } else if (command.substr(0, 4) == "jal ") {
       const int32_t rd = StringToInt(command.substr(4, 8));
       const int32_t imm = StringToInt(command.substr(13, 8));
       Jal(rd, imm);
+      reg_file.Print();
       continue;
     } else if (command.substr(0, 6) == "auipc ") {
       const int32_t rd = StringToInt(command.substr(6, 8));
       const int32_t imm = StringToInt(command.substr(15, 8));
       Auipc(rd, imm);
+      reg_file.Print();
       continue;
     } else if (command.substr(0, 4) == "lui ") {
       const int32_t rd = StringToInt(command.substr(4, 8));
@@ -482,6 +495,7 @@ void Interpreter::Run(Memory &memory) {
     } else {
       throw InvalidInstruction();
     }
+    reg_file.Print();
     pc.NextPC();
   }
 }

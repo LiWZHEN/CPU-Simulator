@@ -52,6 +52,7 @@ void Memory::Run() {
   } else if (type == InstructionType::LW) {
     const int32_t data_m = (this->Get(address) | (this->Get(address + 1) << 8)
         | (this->Get(address + 2) << 16) | (this->Get(address + 3) << 24));
+    std::cout << std::hex << "Memory: load data " << data_m << " from address " << address << " to rob " << std::dec << value << '\n';
     lsb->GetLoadedData(value, data_m);
     rs->GetLoadedData(value, data_m);
     rob->GetLoadedData(value, data_m);
@@ -61,6 +62,7 @@ void Memory::Run() {
     this->Add(address, value & 0xFF);
     this->Add(address + 1, (value >> 8) & 0xFF);
   } else if (type == InstructionType::SW) {
+    std::cout << std::hex << "Memory: store data " << value << " to " << address << '\n';
     this->Add(address, value & 0xFF);
     this->Add(address + 1, (value >> 8) & 0xFF);
     this->Add(address + 2, (value >> 16) & 0xFF);

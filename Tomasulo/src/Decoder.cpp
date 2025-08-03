@@ -64,6 +64,12 @@ void Decoder::Update() {
   new_dependence_rob_ind = task.new_dependence_rob_ind;
   task.new_dependence_rd = -1;
   task.new_dependence_rob_ind = -1;
+  rob_table_size = task.rob_table_size;
+  for (int i = 0; i < rob_table_size; ++i) {
+    rob_ind[i] = task.rob_ind[i];
+    rob_value[i] = task.rob_value[i];
+  }
+  task.rob_table_size = 0;
   machine_code = task.machine_code;
   current_pc = task.current_pc;
   for (int i = 0; i < 32; ++i) {
@@ -127,25 +133,39 @@ void Decoder::Decode_R() {
   if (Q1 == -1) {
     V1 = rf_data[rs1];
   } else {
-    for (int i = 0; i < commit_message_len; ++i) {
-      if (commit_message[i].rob_ind == Q1) {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q1) {
         Q1 = -1;
-        V1 = commit_message[i].value;
+        V1 = rob_value[i];
         break;
       }
     }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q1) {
+    //     Q1 = -1;
+    //     V1 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
   }
   Q2 = rf_dependence[rs2];
   if (Q2 == -1) {
     V2 = rf_data[rs1];
   } else {
-    for (int i = 0; i < commit_message_len; ++i) {
-      if (commit_message[i].rob_ind == Q2) {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q2) {
         Q2 = -1;
-        V2 = commit_message[i].value;
+        V2 = rob_value[i];
         break;
       }
     }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q2) {
+    //     Q2 = -1;
+    //     V2 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
   }
   if (new_dependence_rd != -1) {
     if (rs1 == new_dependence_rd) {
@@ -219,13 +239,20 @@ void Decoder::Decode_IA() {
   if (Q1 == -1) {
     V1 = rf_data[rs1];
   } else {
-    for (int i = 0; i < commit_message_len; ++i) {
-      if (commit_message[i].rob_ind == Q1) {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q1) {
         Q1 = -1;
-        V1 = commit_message[i].value;
+        V1 = rob_value[i];
         break;
       }
     }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q1) {
+    //     Q1 = -1;
+    //     V1 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
   }
   if (new_dependence_rd != -1) {
     if (rs1 == new_dependence_rd) {
@@ -296,13 +323,20 @@ void Decoder::Decode_IM() {
   if (Q1 == -1) {
     V1 = rf_data[rs1];
   } else {
-    for (int i = 0; i < commit_message_len; ++i) {
-      if (commit_message[i].rob_ind == Q1) {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q1) {
         Q1 = -1;
-        V1 = commit_message[i].value;
+        V1 = rob_value[i];
         break;
       }
     }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q1) {
+    //     Q1 = -1;
+    //     V1 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
   }
   if (new_dependence_rd != -1) {
     if (rs1 == new_dependence_rd) {
@@ -348,13 +382,20 @@ void Decoder::Decode_IC() {
   if (Q1 == -1) {
     V1 = rf_data[rs1];
   } else {
-    for (int i = 0; i < commit_message_len; ++i) {
-      if (commit_message[i].rob_ind == Q1) {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q1) {
         Q1 = -1;
-        V1 = commit_message[i].value;
+        V1 = rob_value[i];
         break;
       }
     }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q1) {
+    //     Q1 = -1;
+    //     V1 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
   }
   if (new_dependence_rd != -1) {
     if (rs1 == new_dependence_rd) {
@@ -385,17 +426,46 @@ void Decoder::Decode_S() {
   if (Q1 == -1) {
     V1 = rf_data[rs1];
   } else {
-    for (int i = 0; i < commit_message_len; ++i) {
-      if (commit_message[i].rob_ind == Q1) {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q1) {
         Q1 = -1;
-        V1 = commit_message[i].value;
+        V1 = rob_value[i];
         break;
       }
     }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q1) {
+    //     Q1 = -1;
+    //     V1 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
+  }
+  Q2 = rf_dependence[rs2];
+  if (Q2 == -1) {
+    V2 = rf_data[rs2];
+  } else {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q2) {
+        Q2 = -1;
+        V2 = rob_value[i];
+        break;
+      }
+    }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q2) {
+    //     Q2 = -1;
+    //     V2 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
   }
   if (new_dependence_rd != -1) {
     if (rs1 == new_dependence_rd) {
       Q1 = new_dependence_rob_ind;
+    }
+    if (rs2 == new_dependence_rd) {
+      Q2 = new_dependence_rob_ind;
     }
   }
   switch (funct3) {
@@ -412,7 +482,7 @@ void Decoder::Decode_S() {
     throw InvalidFunction();
   }
   rs->SetFromDecoder(type, V1, imm, Q1, -1, -1);
-  rs->PassRS(rs1, -1);
+  rs->PassRS(rs1, rs2);
   rob->SetFromDecoder(type, rs2, -1, false);
   lsb->SetFromDecoder(type, -1, -1, -1, false);
 }
@@ -429,25 +499,39 @@ void Decoder::Decode_B() {
   if (Q1 == -1) {
     V1 = rf_data[rs1];
   } else {
-    for (int i = 0; i < commit_message_len; ++i) {
-      if (commit_message[i].rob_ind == Q1) {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q1) {
         Q1 = -1;
-        V1 = commit_message[i].value;
+        V1 = rob_value[i];
         break;
       }
     }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q1) {
+    //     Q1 = -1;
+    //     V1 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
   }
   Q2 = rf_dependence[rs2];
   if (Q2 == -1) {
     V2 = rf_data[rs2];
   } else {
-    for (int i = 0; i < commit_message_len; ++i) {
-      if (commit_message[i].rob_ind == Q2) {
+    for (int i = 0; i < rob_table_size; ++i) {
+      if (rob_ind[i] == Q2) {
         Q2 = -1;
-        V2 = commit_message[i].value;
+        V2 = rob_value[i];
         break;
       }
     }
+    // for (int i = 0; i < commit_message_len; ++i) {
+    //   if (commit_message[i].rob_ind == Q2) {
+    //     Q2 = -1;
+    //     V2 = commit_message[i].value;
+    //     break;
+    //   }
+    // }
   }
   if (new_dependence_rd != -1) {
     if (rs1 == new_dependence_rd) {
@@ -603,4 +687,12 @@ void Decoder::Run() {
 void Decoder::SetNewDependence(int32_t rd, int32_t dependence) {
   task.new_dependence_rd = rd;
   task.new_dependence_rob_ind = dependence;
+}
+
+void Decoder::GetROBTable(int32_t rob_index[], int32_t val[], int32_t size) {
+  task.rob_table_size = size;
+  for (int i = 0; i < size; ++i) {
+    task.rob_ind[i] = rob_index[i];
+    task.rob_value[i] = val[i];
+  }
 }

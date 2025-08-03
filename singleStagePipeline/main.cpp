@@ -4,6 +4,7 @@
 
 int main() {
   freopen("record.txt", "w", stderr);
+  freopen("../testcases/array_test1.data", "r", stdin);
   Memory memory;
   DataLoader data_loader;
   Interpreter interpreter;
