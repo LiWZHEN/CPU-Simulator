@@ -47,6 +47,7 @@ void Decoder::Update() {
     task.predict_failed = false;
     task.commit_message_len = 0;
     task.discard_this = false;
+    task.new_dependence_rd = -1;
     return;
   }
   if (task.discard_this) {
