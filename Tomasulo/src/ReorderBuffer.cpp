@@ -123,10 +123,14 @@ void ROB::Run() {
   rs->GetROBTable(rob_ind, value, num);
   lsb->GetROBTable(rob_ind, value, num);
   decoder->GetROBTable(rob_ind, value, num);
+  int32_t commit_num = 0;
   while (rob_structure.head != rob_structure.tail && rob_structure.rob_entries[rob_structure.head].is_ready) {
     ROBEntry first_entry = rob_structure.rob_entries[rob_structure.head];
-    std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
     if (first_entry.type == InstructionType::EXIT) {
+      if (commit_num != 0) {
+        break;
+      }
+      std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
       int32_t return_value = rf->GetData(10);
       std::cout << (return_value & 0x000000FF) << '\n';
       exit(0);
@@ -135,8 +139,13 @@ void ROB::Run() {
         || first_entry.type == InstructionType::BGEU || first_entry.type == InstructionType::BLT
         || first_entry.type == InstructionType::BLTU || first_entry.type == InstructionType::BNE) {
       if ((first_entry.value & 1) == 1) {
+        std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
         predictor->SubmitResult(first_entry.value >> 2, (first_entry.value & 3) == 0 || (first_entry.value & 3) == 3);
       } else {
+        if (commit_num != 0) {
+          break;
+        }
+        std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
         predictor->SubmitResult(first_entry.value >> 2, (first_entry.value & 3) == 0 || (first_entry.value & 3) == 3);
         this->SetPredictFault();
         rs->PredictFailed();
@@ -148,6 +157,7 @@ void ROB::Run() {
         return;
       }
     } else {
+      std::cerr << std::dec << "Commit [" << ind++ << "] " << std::hex << std::setw(6) << PrintType(first_entry.type) << '\n';
       rf->SetFromROB(first_entry.type, first_entry.rd, first_entry.value, rob_structure.head);
       decoder->CommitMessageFromROB(rob_structure.head, first_entry.value);
     }
@@ -155,6 +165,7 @@ void ROB::Run() {
     rob_structure.head++;
     rob_structure.head %= 32;
     --rob_structure.size;
+    ++commit_num;
   }
   rs->PassROBTail(rob_structure.tail);
   lsb->PassROBTail(rob_structure.tail);

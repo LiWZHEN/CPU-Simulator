@@ -79,6 +79,16 @@ void LSB::Update() {
 }
 
 void LSB::Run() {
+  for (int i = 0; i < store_rf_num; ++i) {
+    StoreFromRF unit_task = store_from_rf[i];
+    for (int j = lsb_structure.head; j != lsb_structure.tail; ++j, j %= 32) {
+      if (!lsb_structure.lsb_entries[j].committed && lsb_structure.lsb_entries[j].rob_ind == unit_task.rob_ind) {
+        lsb_structure.lsb_entries[j].address = unit_task.address;
+        lsb_structure.lsb_entries[j].rob_ind = unit_task.value;
+        lsb_structure.lsb_entries[j].committed = true;
+      }
+    }
+  }
   if (predict_failed) {
     task.type_from_decoder = InstructionType::NONE;
     task.type_from_alu = InstructionType::NONE;
@@ -95,25 +105,18 @@ void LSB::Run() {
       }
     }
   }
-  if (type_from_decoder != InstructionType::NONE) {
-    lsb_structure.lsb_entries[lsb_structure.tail] = {type_from_decoder, -1, -1, rob_tail, false};
-    lsb_structure.tail = (lsb_structure.tail + 1) % 32;
+  if (!predict_failed) {
+    if (type_from_decoder != InstructionType::NONE) {
+      lsb_structure.lsb_entries[lsb_structure.tail] = {type_from_decoder, -1, -1, rob_tail, false};
+      lsb_structure.tail = (lsb_structure.tail + 1) % 32;
+    }
   }
-  if (type_from_alu != InstructionType::NONE) {
+  if (type_from_alu == InstructionType::LB || type_from_alu == InstructionType::LBU || type_from_alu == InstructionType::LH
+      || type_from_alu == InstructionType::LHU || type_from_alu == InstructionType::LW) {
     for (int i = lsb_structure.head; i != lsb_structure.tail; ++i, i %= 32) {
       if (!lsb_structure.lsb_entries[i].committed && lsb_structure.lsb_entries[i].rob_ind == rob_ind_from_alu) {
         lsb_structure.lsb_entries[i].address = result_from_alu;
         lsb_structure.lsb_entries[i].committed = true;
-      }
-    }
-  }
-  for (int i = 0; i < store_rf_num; ++i) {
-    StoreFromRF unit_task = store_from_rf[i];
-    for (int j = lsb_structure.head; j != lsb_structure.tail; ++j, j %= 32) {
-      if (!lsb_structure.lsb_entries[j].committed && lsb_structure.lsb_entries[j].rob_ind == unit_task.rob_ind) {
-        lsb_structure.lsb_entries[j].address = unit_task.address;
-        lsb_structure.lsb_entries[j].rob_ind = unit_task.value;
-        lsb_structure.lsb_entries[j].committed = true;
       }
     }
   }
